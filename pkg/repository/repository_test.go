@@ -97,27 +97,56 @@ func exerciseSignableRepository() error {
 		return err
 	}
 
-	id := record.Id
+	if err := repository.CreateVersion(ctx, record); err != nil {
+		return err
+	}
+
+	id1 := record.Id
 
 	if err := repository.CreateVersion(ctx, record); err != nil {
 		return err
 	}
 
-	if err := repository.CreateVersion(ctx, record); err != nil {
+	record1 := &SignableModel{}
+	if err := repository.GetById(ctx, record1, id1); err != nil {
 		return err
 	}
 
-	reloadedRecord := &SignableModel{}
-	if err := repository.GetById(ctx, reloadedRecord, id); err != nil {
+	record0 := &SignableModel{}
+	if err := repository.GetById(ctx, record0, record.Prefix); err != nil {
 		return err
 	}
 
-	if !strings.EqualFold(reloadedRecord.Prefix, record.Prefix) {
+	if record0.SequenceNumber != 0 {
+		return fmt.Errorf("unexpected sn for 0: %d", record0.SequenceNumber)
+	}
+
+	if record0.Previous != nil {
+		return fmt.Errorf("previous not nil")
+	}
+
+	if !strings.EqualFold(record1.Prefix, record.Prefix) {
 		return fmt.Errorf("mismatched prefixes")
 	}
 
-	if strings.EqualFold(reloadedRecord.Id, record.Id) {
+	if strings.EqualFold(record1.Id, record.Id) {
 		return fmt.Errorf("unexpected equal ids")
+	}
+
+	if record1.SequenceNumber != 1 {
+		return fmt.Errorf("unexpected sn for 1: %d", record1.SequenceNumber)
+	}
+
+	if record.SequenceNumber != 2 {
+		return fmt.Errorf("unexpected sn for 2: %d", record.SequenceNumber)
+	}
+
+	if record.Previous == nil || !strings.EqualFold(*record.Previous, record1.Id) {
+		return fmt.Errorf("mismatched previous 1")
+	}
+
+	if record1.Previous == nil || !strings.EqualFold(*record1.Previous, record1.Prefix) {
+		return fmt.Errorf("mismatched previous 0")
 	}
 
 	return nil
