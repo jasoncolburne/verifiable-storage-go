@@ -3,6 +3,8 @@ package verifiablestorage
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/zeebo/blake3"
 )
@@ -41,6 +43,22 @@ func SelfAddress(s SelfAddressable) error {
 	qb64[0] = 'E'
 
 	s.SetId(string(qb64))
+
+	return nil
+}
+
+func VerifyAddress(s SelfAddressable) error {
+	oldId := s.GetId()
+
+	if err := SelfAddress(s); err != nil {
+		return err
+	}
+
+	if !strings.EqualFold(s.GetId(), oldId) {
+		return fmt.Errorf("address verification failed")
+	}
+
+	s.SetId(oldId)
 
 	return nil
 }

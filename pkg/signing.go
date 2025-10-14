@@ -2,14 +2,15 @@ package verifiablestorage
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/crypto"
 )
 
 type Signable interface {
-	Sign(key crypto.SigningKey) error
-	Verify(verificationKeyStore crypto.VerificationKeyStore) error
+	SetSignature(signature string)
+	GetSignature() string
+	SetSigningIdentity(identity string)
+	GetSigningIdentity() string
 }
 
 type Signer struct {
@@ -17,23 +18,47 @@ type Signer struct {
 	Signature       string `db:"signature" json:"-"`
 }
 
-func (s *Signer) Sign(key crypto.SigningKey) error {
+func (s *Signer) SetSignature(signature string) {
+	s.Signature = signature
+}
+
+func (s Signer) GetSignature() string {
+	return s.Signature
+}
+
+func (s *Signer) SetSigningIdentity(identity string) {
+	s.SigningIdentity = identity
+}
+
+func (s Signer) GetSigningIdentity() string {
+	return s.SigningIdentity
+}
+
+func Sign(s Signable, key crypto.SigningKey) error {
+	identity, err := key.Identity()
+	if err != nil {
+		return err
+	}
+
+	s.SetSigningIdentity(identity)
+
 	message, err := json.Marshal(s)
 	if err != nil {
 		return err
 	}
 
-	s.SigningIdentity, err = key.Identity()
+	signature, err := key.Sign(message)
 	if err != nil {
 		return err
 	}
 
-	s.Signature, err = key.Sign(message)
-	return err
+	s.SetSignature(signature)
+
+	return nil
 }
 
-func (s Signer) Verify(verificationKeyStore crypto.VerificationKeyStore) error {
-	verificationKey, err := verificationKeyStore.Get(s.SigningIdentity)
+func VerifySignature(s Signable, verificationKeyStore crypto.VerificationKeyStore) error {
+	verificationKey, err := verificationKeyStore.Get(s.GetSigningIdentity())
 	if err != nil {
 		return err
 	}
@@ -48,7 +73,5 @@ func (s Signer) Verify(verificationKeyStore crypto.VerificationKeyStore) error {
 		return err
 	}
 
-	fmt.Printf("%s\n", message)
-
-	return verificationKey.Verifier().Verify(s.Signature, verificationPublicKey, message)
+	return verificationKey.Verifier().Verify(s.GetSignature(), verificationPublicKey, message)
 }
