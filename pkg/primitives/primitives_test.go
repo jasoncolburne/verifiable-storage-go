@@ -60,7 +60,7 @@ func createVersion(r primitives.VerifiableAndRecordable, noncer interfaces.Nonce
 
 	if !firstRecord {
 		r.SetPrevious(r.GetId())
-		r.IncrementSequenceNumber()
+		r.SetSequenceNumber(r.GetSequenceNumber() + 1)
 	}
 
 	if err := r.GenerateNonce(noncer); err != nil {
@@ -153,7 +153,7 @@ func createFixedVerifiableVersion(r primitives.VerifiableAndRecordable, at strin
 
 	if !firstRecord {
 		r.SetPrevious(r.GetId())
-		r.IncrementSequenceNumber()
+		r.SetSequenceNumber(r.GetSequenceNumber() + 1)
 	}
 
 	if err := r.GenerateNonce(noncer); err != nil {

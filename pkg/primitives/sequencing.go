@@ -1,7 +1,8 @@
 package primitives
 
 type Sequenceable interface {
-	IncrementSequenceNumber()
+	GetSequenceNumber() int
+	SetSequenceNumber(sequenceNumber int)
 }
 
 type Sequencer struct {
@@ -10,4 +11,12 @@ type Sequencer struct {
 
 func (s *Sequencer) IncrementSequenceNumber() {
 	s.SequenceNumber += 1
+}
+
+func (s Sequencer) GetSequenceNumber() int {
+	return s.SequenceNumber
+}
+
+func (s *Sequencer) SetSequenceNumber(sequenceNumber int) {
+	s.SequenceNumber = sequenceNumber
 }
