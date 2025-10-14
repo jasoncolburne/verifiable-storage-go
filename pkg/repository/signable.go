@@ -60,3 +60,15 @@ func (r SignableRepository[T]) GetById(ctx context.Context, record T, id string)
 
 	return nil
 }
+
+func (r SignableRepository[T]) GetLatestByPrefix(ctx context.Context, record T, prefix string) error {
+	if err := r.getLatestRecordByPrefix(ctx, record, prefix); err != nil {
+		return err
+	}
+
+	if err := verifySignedRecord(record, r.verificationKeyStore); err != nil {
+		return err
+	}
+
+	return nil
+}

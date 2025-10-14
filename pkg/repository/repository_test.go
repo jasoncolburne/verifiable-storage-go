@@ -117,6 +117,11 @@ func exerciseSignableRepository() error {
 		return err
 	}
 
+	latest := &SignableModel{}
+	if err := repository.GetLatestByPrefix(ctx, latest, record0.Id); err != nil {
+		return err
+	}
+
 	if record0.SequenceNumber != 0 {
 		return fmt.Errorf("unexpected sn for 0: %d", record0.SequenceNumber)
 	}
@@ -147,6 +152,10 @@ func exerciseSignableRepository() error {
 
 	if record1.Previous == nil || !strings.EqualFold(*record1.Previous, record1.Prefix) {
 		return fmt.Errorf("mismatched previous 0")
+	}
+
+	if !strings.EqualFold(latest.Id, record.Id) {
+		return fmt.Errorf("latest id is mismatched")
 	}
 
 	return nil
