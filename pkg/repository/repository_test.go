@@ -10,11 +10,10 @@ import (
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/repository"
 )
 
-type SignableSearchableModel struct {
+type SignableModel struct {
 	primitives.SignableRecorder
 	Foo string `db:"foo" json:"foo"`
 	Bar string `db:"bar" json:"bar"`
-	Baz string `db:"baz" json:"baz"`
 }
 
 func TestSignableSearchableRepository(t *testing.T) {
@@ -33,17 +32,16 @@ func exerciseSignableSearchableRepository() error {
 
 	noncer := examples.NewNoncer()
 
-	repository := repository.NewSignableRepository[*SignableSearchableModel](
+	repository := repository.NewSignableRepository[*SignableModel](
 		store,
 		true,
 		noncer,
 		key,
 	)
 
-	record := &SignableSearchableModel{
+	record := &SignableModel{
 		Foo: "bar",
 		Bar: "baz",
-		Baz: "foo",
 	}
 
 	repository.CreateVersion(record)
