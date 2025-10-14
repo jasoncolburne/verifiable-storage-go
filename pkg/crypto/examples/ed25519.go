@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"fmt"
+	"sync"
 
 	interfaces "github.com/jasoncolburne/verifiable-storage-go/pkg/crypto"
 )
@@ -114,4 +115,33 @@ func (e Ed25519) Public() (string, error) {
 	qb64[0] = 'B'
 
 	return string(qb64), nil
+}
+
+type VerificationKeyStore struct {
+	mu   sync.RWMutex
+	keys map[string]interfaces.VerificationKey
+}
+
+func NewVerificationKeyStore() *VerificationKeyStore {
+	return &VerificationKeyStore{
+		keys: make(map[string]interfaces.VerificationKey),
+	}
+}
+
+func (s *VerificationKeyStore) Add(identity string, key interfaces.VerificationKey) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.keys[identity] = key
+}
+
+func (s *VerificationKeyStore) Get(identity string) (interfaces.VerificationKey, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	key, exists := s.keys[identity]
+	if !exists {
+		return nil, fmt.Errorf("key not found for identity: %s", identity)
+	}
+	return key, nil
 }
