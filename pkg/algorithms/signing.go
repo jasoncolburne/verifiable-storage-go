@@ -13,6 +13,8 @@ func Sign(s primitives.Signable, key interfaces.SigningKey) error {
 		return err
 	}
 
+	s.SetSigningIdentity(identity)
+
 	message, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -23,7 +25,6 @@ func Sign(s primitives.Signable, key interfaces.SigningKey) error {
 		return err
 	}
 
-	s.SetSigningIdentity(identity)
 	s.SetSignature(signature)
 
 	return nil
