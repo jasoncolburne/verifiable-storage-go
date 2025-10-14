@@ -17,13 +17,6 @@ type SignableSearchableModel struct {
 	Baz string `db:"baz" json:"baz"`
 }
 
-func (s SignableSearchableModel) DeriveSearchKey() string {
-	// in the db, you could create a unique constraint around (search_key, sequence_number)
-	blake3 := examples.NewBlake3()
-
-	return blake3.Sum(s.Foo + s.Bar)
-}
-
 func TestSignableSearchableRepository(t *testing.T) {
 	if err := exerciseSignableSearchableRepository(); err != nil {
 		fmt.Printf("%s\n", err)
