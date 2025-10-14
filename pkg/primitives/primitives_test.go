@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/algorithms"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces/examples"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
@@ -73,11 +74,11 @@ func createVerifiableVersion(r primitives.VerifiableAndRecordable, at *primitive
 	r.StampCreatedAt(at)
 
 	if firstRecord {
-		if err := primitives.CreatePrefix(r); err != nil {
+		if err := algorithms.CreatePrefix(r); err != nil {
 			return err
 		}
 	} else {
-		if err := primitives.SelfAddress(r); err != nil {
+		if err := algorithms.SelfAddress(r); err != nil {
 			return err
 		}
 	}
@@ -265,7 +266,7 @@ func createFixedSignedVersion(s primitives.SignableAndRecordable, at primitives.
 		return err
 	}
 
-	if err := primitives.Sign(s, key); err != nil {
+	if err := algorithms.Sign(s, key); err != nil {
 		return err
 	}
 
@@ -288,7 +289,7 @@ func verifySignature(s primitives.SignableAndRecordable, key interfaces.SigningK
 	verificationKeyStore := examples.NewVerificationKeyStore()
 	verificationKeyStore.Add(identity, verificationKey)
 
-	if err := primitives.VerifySignature(s, verificationKeyStore); err != nil {
+	if err := algorithms.VerifySignature(s, verificationKeyStore); err != nil {
 		return err
 	}
 
