@@ -19,7 +19,7 @@ func CreatePrefix(p primitives.Prefixable) error {
 	return nil
 }
 
-func VerifyPrefix(p primitives.Prefixable) error {
+func VerifyPrefixAndData(p primitives.Prefixable) error {
 	oldId := p.GetId()
 	oldPrefix := p.GetPrefix()
 

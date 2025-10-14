@@ -13,10 +13,17 @@ import (
 type SignableRepository[T primitives.SignableAndRecordable] struct {
 	VerifiableRepository[T]
 
-	signingKey interfaces.SigningKey
+	signingKey           interfaces.SigningKey
+	verificationKeyStore interfaces.VerificationKeyStore
 }
 
-func NewSignableRepository[T primitives.SignableAndRecordable](store data.Store, write bool, noncer interfaces.Noncer, signingKey interfaces.SigningKey) *SignableRepository[T] {
+func NewSignableRepository[T primitives.SignableAndRecordable](
+	store data.Store,
+	write bool,
+	noncer interfaces.Noncer,
+	signingKey interfaces.SigningKey,
+	verificationKeyStore interfaces.VerificationKeyStore,
+) *SignableRepository[T] {
 	return &SignableRepository[T]{
 		VerifiableRepository: VerifiableRepository[T]{
 			store:  store,
@@ -25,7 +32,8 @@ func NewSignableRepository[T primitives.SignableAndRecordable](store data.Store,
 			write: write,
 		},
 
-		signingKey: signingKey,
+		signingKey:           signingKey,
+		verificationKeyStore: verificationKeyStore,
 	}
 }
 
@@ -62,6 +70,10 @@ func (r SignableRepository[T]) GetById(ctx context.Context, t T, id string) erro
 	query := fmt.Sprintf("SELECT * from %s where id = %s", t.TableName(), r.store.Placeholder())
 
 	if err := r.store.Sql().GetContext(ctx, t, query, id); err != nil {
+		return err
+	}
+
+	if err := verifySignedRecord(t, r.verificationKeyStore); err != nil {
 		return err
 	}
 

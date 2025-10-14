@@ -7,13 +7,17 @@ import (
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
 )
 
-func Sign(s primitives.Signable, key interfaces.SigningKey) error {
+func Sign(s primitives.Signable, key interfaces.SigningKey, callback func() error) error {
 	identity, err := key.Identity()
 	if err != nil {
 		return err
 	}
 
 	s.SetSigningIdentity(identity)
+
+	if err := callback(); err != nil {
+		return err
+	}
 
 	message, err := json.Marshal(s)
 	if err != nil {

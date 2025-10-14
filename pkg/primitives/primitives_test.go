@@ -210,11 +210,11 @@ func exerciseFixedSignableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"ELG3AqCIt2FgklHK_TI3dXVLqlHlxb9v2Kvl-IQ4Hhgo","prefix":"ELG3AqCIt2FgklHK_TI3dXVLqlHlxb9v2Kvl-IQ4Hhgo","sequenceNumber":0,"nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:32.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
-		return fmt.Errorf("sn 0 had unexpected values")
+	if !strings.EqualFold(string(jsonRecord), `{"id":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","prefix":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","sequenceNumber":0,"nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:32.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
+		return fmt.Errorf("sn 0 had unexpected values: %s", jsonRecord)
 	}
 
-	if !strings.EqualFold(r.Signature, "0BDgyCjwCxzSBWx-SuPez_VXIZbWNW8wwBzFG4tGVD1jqG1HidhLYXo6lGzSC4gKzgVjif64wAUhFUoUdgfZRs0D") {
+	if !strings.EqualFold(r.Signature, "0BDYzrwL2kLyV9-cqlUpZPGb3Knv41fi5XS5cmvFRJ0H69EijqO0h-gxfsuPbpurdO1yFHaTZgfurKN-ORjXZqEH") {
 		return fmt.Errorf("sn 0 had unexpected signature: %s", r.Signature)
 	}
 
@@ -232,11 +232,11 @@ func exerciseFixedSignableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"EMmbYhG3GtJI52WTC06Z6s9gkIIVMhhQKP1-fotvuyDP","prefix":"ELG3AqCIt2FgklHK_TI3dXVLqlHlxb9v2Kvl-IQ4Hhgo","sequenceNumber":1,"previous":"ELG3AqCIt2FgklHK_TI3dXVLqlHlxb9v2Kvl-IQ4Hhgo","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:33.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
-		return fmt.Errorf("sn 1 had unexpected values")
+	if !strings.EqualFold(string(jsonRecord), `{"id":"EHlunc8O09d5S-rHTD7IOHZ9Uo1vSfr1C6VAuEGJLnak","prefix":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","sequenceNumber":1,"previous":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:33.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
+		return fmt.Errorf("sn 1 had unexpected values: %s", jsonRecord)
 	}
 
-	if !strings.EqualFold(r.Signature, "0BD0X3oVgKWf1F9N2l8AFcu4lKRdy5J895m21ytoQ8XTi4BxDSEo09gDYrU3owP0xgiSzXYnFrwHACVZwepWR3AG") {
+	if !strings.EqualFold(r.Signature, "0BCRqU5w6jV4xSf__vgxwlxiAUTEwZoczLxHPx7IAqfTaY88ua6p5SB_4kZYBy2vKe-PnQXNcSteCuHQVB51LdcD") {
 		return fmt.Errorf("sn 1 had unexpected signature: %s", r.Signature)
 	}
 
@@ -254,12 +254,11 @@ func exerciseFixedSignableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"ECjfjyfLwO3Cip1Q950zd2MjXZVokjG1mkdNKTL4rNO_","prefix":"ELG3AqCIt2FgklHK_TI3dXVLqlHlxb9v2Kvl-IQ4Hhgo","sequenceNumber":2,"previous":"EMmbYhG3GtJI52WTC06Z6s9gkIIVMhhQKP1-fotvuyDP","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:34.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
-		fmt.Printf("%s\n", jsonRecord)
-		return fmt.Errorf("sn 2 had unexpected values")
+	if !strings.EqualFold(string(jsonRecord), `{"id":"EETf1YcE2NeQFY9hFCCCjThhelLxUGSyLQ9e3BCCaSYd","prefix":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","sequenceNumber":2,"previous":"EHlunc8O09d5S-rHTD7IOHZ9Uo1vSfr1C6VAuEGJLnak","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:34.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
+		return fmt.Errorf("sn 2 had unexpected values: %s", jsonRecord)
 	}
 
-	if !strings.EqualFold(r.Signature, "0BC9OYswxd7AMxZPi6kGteFo48_At0KlivhcLJmzSP37Jc2n5yWqlYvz1yOQrM8UPCheryNincuaA2ms5Vpxi1MJ") {
+	if !strings.EqualFold(r.Signature, "0BBzjQIE3QOU9c81N6V8WuJ5W8gQoWh9DXTMccQKx1_EJfuJvVzqeMOY5E6l2_n75Ywy4Wx2e01f2TxLM4zQox0N") {
 		return fmt.Errorf("sn 2 had unexpected signature: %s", r.Signature)
 	}
 
@@ -267,11 +266,9 @@ func exerciseFixedSignableRecorder() error {
 }
 
 func createFixedSignedVersion(s primitives.SignableAndRecordable, at primitives.Timestamp, key interfaces.SigningKey) error {
-	if err := createFixedVerifiableVersion(s, at); err != nil {
-		return err
-	}
-
-	if err := algorithms.Sign(s, key); err != nil {
+	if err := algorithms.Sign(s, key, func() error {
+		return createFixedVerifiableVersion(s, at)
+	}); err != nil {
 		return err
 	}
 

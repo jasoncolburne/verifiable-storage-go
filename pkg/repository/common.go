@@ -41,11 +41,35 @@ func prepareVerifiableRecord(record primitives.VerifiableAndRecordable, noncer i
 }
 
 func prepareSignedRecord(record primitives.SignableAndRecordable, noncer interfaces.Noncer, key interfaces.SigningKey) error {
-	if err := prepareVerifiableRecord(record, noncer); err != nil {
+	if err := algorithms.Sign(record, key, func() error {
+		return prepareVerifiableRecord(record, noncer)
+	}); err != nil {
 		return err
 	}
 
-	if err := algorithms.Sign(record, key); err != nil {
+	return nil
+}
+
+func verifyRecord(record primitives.VerifiableAndRecordable) error {
+	if record.GetSequenceNumber() == 0 {
+		if err := algorithms.VerifyPrefixAndData(record); err != nil {
+			return err
+		}
+	} else {
+		if err := algorithms.VerifyAddressAndData(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func verifySignedRecord(record primitives.SignableAndRecordable, verificationKeyStore interfaces.VerificationKeyStore) error {
+	if err := algorithms.VerifySignature(record, verificationKeyStore); err != nil {
+		return err
+	}
+
+	if err := verifyRecord(record); err != nil {
 		return err
 	}
 

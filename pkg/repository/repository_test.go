@@ -45,14 +45,14 @@ CREATE TABLE IF NOT EXISTS signable (
 );
 `
 
-func TestSignableSearchableRepository(t *testing.T) {
-	if err := exerciseSignableSearchableRepository(); err != nil {
+func TestSignableRepository(t *testing.T) {
+	if err := exerciseSignableRepository(); err != nil {
 		fmt.Printf("%s\n", err)
 		t.Fail()
 	}
 }
 
-func exerciseSignableSearchableRepository() error {
+func exerciseSignableRepository() error {
 	ctx := context.Background()
 
 	store, err := data.NewInMemorySQLiteStore()
@@ -70,6 +70,14 @@ func exerciseSignableSearchableRepository() error {
 		return err
 	}
 
+	keyIdentity, err := key.Identity()
+	if err != nil {
+		return err
+	}
+
+	verificationKeyStore := examples.NewVerificationKeyStore()
+	verificationKeyStore.Add(keyIdentity, key)
+
 	noncer := examples.NewNoncer()
 
 	repository := repository.NewSignableRepository[*SignableModel](
@@ -77,6 +85,7 @@ func exerciseSignableSearchableRepository() error {
 		true,
 		noncer,
 		key,
+		verificationKeyStore,
 	)
 
 	record := &SignableModel{
