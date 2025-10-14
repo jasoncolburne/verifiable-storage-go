@@ -50,7 +50,7 @@ func (r SignableRepository[T]) CreateVersion(ctx context.Context, record T) erro
 }
 
 func (r SignableRepository[T]) GetById(ctx context.Context, record T, id string) error {
-	if err := r.getRecord(ctx, record, id); err != nil {
+	if err := r.getRecordById(ctx, record, id); err != nil {
 		return err
 	}
 
@@ -68,6 +68,20 @@ func (r SignableRepository[T]) GetLatestByPrefix(ctx context.Context, record T, 
 
 	if err := verifySignedRecord(record, r.verificationKeyStore); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, prefix string) error {
+	if err := r.listRecordsByPrefix(ctx, records, prefix); err != nil {
+		return err
+	}
+
+	for _, record := range *records {
+		if err := verifySignedRecord(record, r.verificationKeyStore); err != nil {
+			return err
+		}
 	}
 
 	return nil

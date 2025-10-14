@@ -18,7 +18,7 @@ type SignableModel struct {
 	Bar string `db:"bar" json:"bar"`
 }
 
-func (t SignableModel) TableName() string {
+func (*SignableModel) TableName() string {
 	return `signable`
 }
 
@@ -88,22 +88,22 @@ func exerciseSignableRepository() error {
 		verificationKeyStore,
 	)
 
-	record := &SignableModel{
+	record2 := &SignableModel{
 		Foo: "bar",
 		Bar: "baz",
 	}
 
-	if err := repository.CreateVersion(ctx, record); err != nil {
+	if err := repository.CreateVersion(ctx, record2); err != nil {
 		return err
 	}
 
-	if err := repository.CreateVersion(ctx, record); err != nil {
+	if err := repository.CreateVersion(ctx, record2); err != nil {
 		return err
 	}
 
-	id1 := record.Id
+	id1 := record2.Id
 
-	if err := repository.CreateVersion(ctx, record); err != nil {
+	if err := repository.CreateVersion(ctx, record2); err != nil {
 		return err
 	}
 
@@ -113,7 +113,7 @@ func exerciseSignableRepository() error {
 	}
 
 	record0 := &SignableModel{}
-	if err := repository.GetById(ctx, record0, record.Prefix); err != nil {
+	if err := repository.GetById(ctx, record0, record2.Prefix); err != nil {
 		return err
 	}
 
@@ -130,11 +130,11 @@ func exerciseSignableRepository() error {
 		return fmt.Errorf("previous not nil")
 	}
 
-	if !strings.EqualFold(record1.Prefix, record.Prefix) {
+	if !strings.EqualFold(record1.Prefix, record2.Prefix) {
 		return fmt.Errorf("mismatched prefixes")
 	}
 
-	if strings.EqualFold(record1.Id, record.Id) {
+	if strings.EqualFold(record1.Id, record2.Id) {
 		return fmt.Errorf("unexpected equal ids")
 	}
 
@@ -142,11 +142,11 @@ func exerciseSignableRepository() error {
 		return fmt.Errorf("unexpected sn for 1: %d", record1.SequenceNumber)
 	}
 
-	if record.SequenceNumber != 2 {
-		return fmt.Errorf("unexpected sn for 2: %d", record.SequenceNumber)
+	if record2.SequenceNumber != 2 {
+		return fmt.Errorf("unexpected sn for 2: %d", record2.SequenceNumber)
 	}
 
-	if record.Previous == nil || !strings.EqualFold(*record.Previous, record1.Id) {
+	if record2.Previous == nil || !strings.EqualFold(*record2.Previous, record1.Id) {
 		return fmt.Errorf("mismatched previous 1")
 	}
 
@@ -154,8 +154,35 @@ func exerciseSignableRepository() error {
 		return fmt.Errorf("mismatched previous 0")
 	}
 
-	if !strings.EqualFold(latest.Id, record.Id) {
+	if !strings.EqualFold(latest.Id, record2.Id) {
 		return fmt.Errorf("latest id is mismatched")
+	}
+
+	records := []*SignableModel{}
+
+	if err := repository.ListByPrefix(ctx, &records, record2.Prefix); err != nil {
+		return err
+	}
+
+	if len(records) != 3 {
+		return fmt.Errorf("incorrect number of records listed (%d)", len(records))
+	}
+
+	for i, record := range records {
+		switch i {
+		case 0:
+			if !strings.EqualFold(record0.Id, record.Id) {
+				return fmt.Errorf("listed record 0 has incorrect id")
+			}
+		case 1:
+			if !strings.EqualFold(record1.Id, record.Id) {
+				return fmt.Errorf("listed record 1 has incorrect id")
+			}
+		case 2:
+			if !strings.EqualFold(record2.Id, record.Id) {
+				return fmt.Errorf("listed record 2 has incorrect id")
+			}
+		}
 	}
 
 	return nil
