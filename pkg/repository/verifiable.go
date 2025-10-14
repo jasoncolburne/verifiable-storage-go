@@ -125,8 +125,7 @@ func (r VerifiableRepository[T]) getLatestRecordByPrefix(ctx context.Context, re
 }
 
 func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, records *[]T, prefix string) error {
-	var t T
-	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix = %s ORDER BY sequence_number ASC", t.TableName(), r.store.Placeholder())
+	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix = %s ORDER BY sequence_number ASC", (*new(T)).TableName(), r.store.Placeholder())
 
 	if err := r.store.Sql().SelectContext(ctx, records, query, prefix); err != nil {
 		return err
