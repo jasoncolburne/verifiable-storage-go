@@ -31,7 +31,7 @@ func SelfAddress(s primitives.SelfAddressable) error {
 	return nil
 }
 
-func VerifyAddress(s primitives.SelfAddressable) error {
+func VerifyAddressAndData(s primitives.SelfAddressable) error {
 	oldId := s.GetId()
 
 	defer func() {

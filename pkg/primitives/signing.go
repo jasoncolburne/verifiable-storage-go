@@ -27,3 +27,9 @@ func (s *Signer) SetSigningIdentity(identity string) {
 func (s Signer) GetSigningIdentity() string {
 	return s.SigningIdentity
 }
+
+// only used when json encoding a record and its signature
+type SignedContainer[T Signable] struct {
+	Record    T      `json:"record"`
+	Signature string `json:"signature"`
+}

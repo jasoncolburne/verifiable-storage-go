@@ -13,8 +13,6 @@ func Sign(s primitives.Signable, key interfaces.SigningKey) error {
 		return err
 	}
 
-	s.SetSigningIdentity(identity)
-
 	message, err := json.Marshal(s)
 	if err != nil {
 		return err
@@ -25,6 +23,7 @@ func Sign(s primitives.Signable, key interfaces.SigningKey) error {
 		return err
 	}
 
+	s.SetSigningIdentity(identity)
 	s.SetSignature(signature)
 
 	return nil
@@ -47,4 +46,18 @@ func VerifySignature(s primitives.Signable, verificationKeyStore interfaces.Veri
 	}
 
 	return verificationKey.Verifier().Verify(s.GetSignature(), verificationPublicKey, message)
+}
+
+func CreateSignedContainer[T primitives.Signable](record T) (string, error) {
+	container := primitives.SignedContainer[T]{
+		Record:    record,
+		Signature: record.GetSignature(),
+	}
+
+	jsonString, err := json.Marshal(container)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonString), nil
 }
