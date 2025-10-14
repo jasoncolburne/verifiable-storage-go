@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
@@ -31,10 +33,56 @@ func (r VerifiableRepository[T]) CreateVersion(ctx context.Context, record T) er
 	}
 
 	if r.write {
-		r.store.Sql().ExecContext(
-			ctx,
-			``,
-		)
+		if err := r.insertRecord(ctx, record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r VerifiableRepository[T]) GetById(ctx context.Context, record T, id string) error {
+	if err := r.getRecord(ctx, record, id); err != nil {
+		return err
+	}
+
+	if err := verifyRecord(record); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// helpers
+
+func (r VerifiableRepository[T]) insertRecord(ctx context.Context, record T) error {
+	fieldNames := getFieldNames(record)
+	innerFields := strings.Join(fieldNames, ", ")
+	innerValues := strings.Join(fieldNames, ", :")
+
+	fmt.Printf("%s\n", innerFields)
+	fmt.Printf("%s\n", innerValues)
+
+	// write to data store
+	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (:%s)", record.TableName(), innerFields, innerValues)
+
+	_, err := r.store.Sql().NamedExecContext(
+		ctx,
+		query,
+		record,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r VerifiableRepository[T]) getRecord(ctx context.Context, record T, id string) error {
+	query := fmt.Sprintf("SELECT * from %s where id = %s", record.TableName(), r.store.Placeholder())
+
+	if err := r.store.Sql().GetContext(ctx, record, query, id); err != nil {
+		return err
 	}
 
 	return nil
