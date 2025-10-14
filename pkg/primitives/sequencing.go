@@ -1,20 +1,18 @@
 package primitives
 
-import "math/big"
-
 type Sequenceable interface {
-	GetSequenceNumber() *big.Int
-	SetSequenceNumber(sequenceNumber *big.Int)
+	GetSequenceNumber() uint64
+	SetSequenceNumber(sequenceNumber uint64)
 }
 
 type Sequencer struct {
-	SequenceNumber big.Int `db:"sequence_number" json:"sequenceNumber"`
+	SequenceNumber uint64 `db:"sequence_number" json:"sequenceNumber"`
 }
 
-func (s Sequencer) GetSequenceNumber() *big.Int {
-	return &s.SequenceNumber
+func (s Sequencer) GetSequenceNumber() uint64 {
+	return s.SequenceNumber
 }
 
-func (s *Sequencer) SetSequenceNumber(sequenceNumber *big.Int) {
-	s.SequenceNumber = *sequenceNumber
+func (s *Sequencer) SetSequenceNumber(sequenceNumber uint64) {
+	s.SequenceNumber = sequenceNumber
 }

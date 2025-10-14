@@ -1,7 +1,9 @@
 package primitives
 
 import (
+	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -38,6 +40,39 @@ func (t *Timestamp) UnmarshalJSON(b []byte) error {
 	*t = Timestamp(when)
 
 	return nil
+}
+
+func (t Timestamp) Value() (driver.Value, error) {
+	return time.Time(t).Format("2006-01-02 15:04:05.000000"), nil
+}
+
+func (t *Timestamp) Scan(src any) error {
+	if src == nil {
+		return nil
+	}
+	switch v := src.(type) {
+	case time.Time:
+		*t = Timestamp(v)
+		return nil
+	case string:
+		_t, err := time.Parse("2006-01-02 15:04:05", v)
+		if err != nil {
+			return err
+		}
+
+		*t = Timestamp(_t)
+		return nil
+	case []byte:
+		_t, err := time.Parse("2006-01-02 15:04:05", string(v))
+		if err != nil {
+			return err
+		}
+
+		*t = Timestamp(_t)
+		return nil
+	default:
+		return fmt.Errorf("unsupported src type %T", src)
+	}
 }
 
 type Timestampable interface {

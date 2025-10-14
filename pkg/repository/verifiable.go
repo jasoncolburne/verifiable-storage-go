@@ -1,8 +1,7 @@
 package repository
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
@@ -26,17 +25,16 @@ func NewVerifiableRepository[T primitives.VerifiableAndRecordable](store data.St
 	}
 }
 
-func (r VerifiableRepository[T]) CreateVersion(record T) error {
-	prepareVerifiableRecord(record, r.noncer)
+func (r VerifiableRepository[T]) CreateVersion(ctx context.Context, record T) error {
+	if err := prepareVerifiableRecord(record, r.noncer); err != nil {
+		return err
+	}
 
 	if r.write {
-		// write to data store
-		bytes, err := json.Marshal(record)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("%s\n", bytes)
+		r.store.Sql().ExecContext(
+			ctx,
+			``,
+		)
 	}
 
 	return nil

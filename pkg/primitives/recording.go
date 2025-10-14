@@ -6,6 +6,8 @@ type VerifiableAndRecordable interface {
 	Chainable
 	Nonceable
 	Timestampable
+	TableName() string
+	// FieldNames() []string
 }
 
 type SignableAndRecordable interface {

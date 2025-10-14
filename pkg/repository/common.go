@@ -2,6 +2,7 @@ package repository
 
 import (
 	"math/big"
+	"reflect"
 	"strings"
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/algorithms"
@@ -17,9 +18,7 @@ func prepareVerifiableRecord(record primitives.VerifiableAndRecordable, noncer i
 
 	if !firstRecord {
 		record.SetPrevious(record.GetId())
-		sequenceNumber := record.GetSequenceNumber()
-		sequenceNumber.Add(sequenceNumber, big.NewInt(1))
-		record.SetSequenceNumber(sequenceNumber)
+		record.SetSequenceNumber(record.GetSequenceNumber() + 1)
 	}
 
 	if err := record.GenerateNonce(noncer); err != nil {
@@ -51,4 +50,39 @@ func prepareSignedRecord(record primitives.SignableAndRecordable, noncer interfa
 	}
 
 	return nil
+}
+
+func getFieldNames(s any) (fields []string) {
+	t := reflect.TypeOf(s)
+	return getLeafFieldNames(t)
+}
+
+func getLeafFieldNames(t reflect.Type) (names []string) {
+	// If pointer, deref.
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	// Process only struct types.
+	if t.Kind() != reflect.Struct {
+		return names
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fieldType := field.Type
+		// If field is itself a struct (and not a time.Time or slice/map), recurse.
+		if fieldType.Kind() == reflect.Struct && fieldType != reflect.TypeOf(primitives.Timestamp{}) && fieldType != reflect.TypeOf(big.Int{}) {
+			nested := getLeafFieldNames(fieldType)
+			names = append(names, nested...)
+		} else {
+			// Use db tag if present.
+			tag := field.Tag.Get("db")
+			if tag != "" && tag != "-" {
+				names = append(names, tag)
+			} else {
+				names = append(names, field.Name)
+			}
+		}
+	}
+	return names
 }

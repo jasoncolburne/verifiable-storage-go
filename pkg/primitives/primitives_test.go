@@ -3,7 +3,6 @@ package primitives_test
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"strings"
 	"testing"
 	"time"
@@ -18,6 +17,10 @@ type Record struct {
 	primitives.VerifiableRecorder
 	Foo string `db:"foo" json:"foo"`
 	Bar string `db:"bar" json:"bar"`
+}
+
+func (Record) TableName() string {
+	return `record`
 }
 
 func TestVerifiableRecorder(t *testing.T) {
@@ -47,7 +50,7 @@ func exerciseVerifiableRecorder() error {
 		return err
 	}
 
-	if r.SequenceNumber.Int64() != 2 {
+	if r.SequenceNumber != 2 {
 		return fmt.Errorf("not incremented")
 	}
 
@@ -62,9 +65,7 @@ func createVerifiableVersion(r primitives.VerifiableAndRecordable, at *primitive
 
 	if !firstRecord {
 		r.SetPrevious(r.GetId())
-		sequenceNumber := r.GetSequenceNumber()
-		sequenceNumber.Add(sequenceNumber, big.NewInt(1))
-		r.SetSequenceNumber(sequenceNumber)
+		r.SetSequenceNumber(r.GetSequenceNumber() + 1)
 	}
 
 	if err := r.GenerateNonce(noncer); err != nil {
@@ -165,6 +166,10 @@ type SignableRecord struct {
 	primitives.SignableRecorder
 	Foo string `db:"foo" json:"foo"`
 	Bar string `db:"bar" json:"bar"`
+}
+
+func (SignableRecord) TableName() string {
+	return `signablerecord`
 }
 
 func TestFixedSignableRecorder(t *testing.T) {
