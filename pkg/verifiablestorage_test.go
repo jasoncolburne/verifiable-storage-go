@@ -185,7 +185,7 @@ type SignableRecord struct {
 	Bar string `db:"bar" json:"bar"`
 }
 
-func TestSignableRecorder(t *testing.T) {
+func TestFixedSignableRecorder(t *testing.T) {
 	if err := exerciseFixedSignableRecorder(); err != nil {
 		fmt.Printf("%s\n", err)
 		t.Fail()
@@ -273,36 +273,8 @@ func exerciseFixedSignableRecorder() error {
 }
 
 func createFixedSignedVersion(s verifiablestorage.SignableAndRecordable, at string, key crypto.SigningKey) error {
-	noncer := &FixedNoncer{}
-
-	firstRecord := false
-	if strings.EqualFold(s.GetId(), "") {
-		firstRecord = true
-	}
-
-	if !firstRecord {
-		s.SetPrevious(s.GetId())
-		s.IncrementSequenceNumber()
-	}
-
-	if err := s.GenerateNonce(noncer); err != nil {
+	if err := createFixedVerifiableVersion(s, at); err != nil {
 		return err
-	}
-
-	when, err := time.Parse(time.RFC3339Nano, at)
-	if err != nil {
-		return err
-	}
-	s.StampCreatedAt((*verifiablestorage.Timestamp)(&when))
-
-	if firstRecord {
-		if err := verifiablestorage.CreatePrefix(s); err != nil {
-			return err
-		}
-	} else {
-		if err := verifiablestorage.SelfAddress(s); err != nil {
-			return err
-		}
 	}
 
 	if err := verifiablestorage.Sign(s, key); err != nil {
