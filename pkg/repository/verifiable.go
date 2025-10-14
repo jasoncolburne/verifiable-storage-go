@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"math/big"
 	"strings"
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
@@ -43,7 +44,9 @@ func (v VerifiableRepository[T]) prepareRecord(record T, noncer interfaces.Nonce
 
 	if !firstRecord {
 		record.SetPrevious(record.GetId())
-		record.SetSequenceNumber(record.GetSequenceNumber() + 1)
+		sequenceNumber := record.GetSequenceNumber()
+		sequenceNumber.Add(&sequenceNumber, big.NewInt(1))
+		record.SetSequenceNumber(sequenceNumber)
 	}
 
 	if err := record.GenerateNonce(noncer); err != nil {

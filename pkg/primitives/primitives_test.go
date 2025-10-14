@@ -3,6 +3,7 @@ package primitives_test
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strings"
 	"testing"
 	"time"
@@ -33,26 +34,26 @@ func exerciseVerifiableRecorder() error {
 
 	noncer := examples.NewNoncer()
 
-	if err := createVersion(r, noncer); err != nil {
+	if err := createVerifiableVersion(r, nil, noncer); err != nil {
 		return err
 	}
 
-	if err := createVersion(r, noncer); err != nil {
+	if err := createVerifiableVersion(r, nil, noncer); err != nil {
 		return err
 	}
 
-	if err := createVersion(r, noncer); err != nil {
+	if err := createVerifiableVersion(r, nil, noncer); err != nil {
 		return err
 	}
 
-	if r.SequenceNumber != 2 {
+	if r.SequenceNumber.Int64() != 2 {
 		return fmt.Errorf("not incremented")
 	}
 
 	return nil
 }
 
-func createVersion(r primitives.VerifiableAndRecordable, noncer interfaces.Noncer) error {
+func createVerifiableVersion(r primitives.VerifiableAndRecordable, at *primitives.Timestamp, noncer interfaces.Noncer) error {
 	firstRecord := false
 	if strings.EqualFold(r.GetId(), "") {
 		firstRecord = true
@@ -60,14 +61,16 @@ func createVersion(r primitives.VerifiableAndRecordable, noncer interfaces.Nonce
 
 	if !firstRecord {
 		r.SetPrevious(r.GetId())
-		r.SetSequenceNumber(r.GetSequenceNumber() + 1)
+		sequenceNumber := r.GetSequenceNumber()
+		sequenceNumber.Add(&sequenceNumber, big.NewInt(1))
+		r.SetSequenceNumber(sequenceNumber)
 	}
 
 	if err := r.GenerateNonce(noncer); err != nil {
 		return err
 	}
 
-	r.StampCreatedAt(nil)
+	r.StampCreatedAt(at)
 
 	if firstRecord {
 		if err := primitives.CreatePrefix(r); err != nil {
@@ -101,7 +104,12 @@ func exerciseFixedVerifiableRecorder() error {
 		Bar: "foo",
 	}
 
-	if err := createFixedVerifiableVersion(r, "2025-10-13T20:25:32.722276000Z"); err != nil {
+	at, err := time.Parse(time.RFC3339Nano, "2025-10-13T20:25:32.722276000Z")
+	if err != nil {
+		return err
+	}
+
+	if err := createFixedVerifiableVersion(r, primitives.Timestamp(at)); err != nil {
 		return err
 	}
 
@@ -111,10 +119,11 @@ func exerciseFixedVerifiableRecorder() error {
 	}
 
 	if !strings.EqualFold(string(jsonRecord), `{"id":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","prefix":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","sequenceNumber":0,"nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:32.722276000Z","foo":"bar","bar":"foo"}`) {
-		return fmt.Errorf("sn 0 had unexpected values")
+		return fmt.Errorf("sn 0 had unexpected values: %s", jsonRecord)
 	}
 
-	if err := createFixedVerifiableVersion(r, "2025-10-13T20:25:33.722276000Z"); err != nil {
+	at = at.Add(time.Second)
+	if err := createFixedVerifiableVersion(r, primitives.Timestamp(at)); err != nil {
 		return err
 	}
 
@@ -124,10 +133,11 @@ func exerciseFixedVerifiableRecorder() error {
 	}
 
 	if !strings.EqualFold(string(jsonRecord), `{"id":"EO_wM1UoWjk4aTOkrOdN56JxfNJBwGpKDpFAcaSlEiB3","prefix":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","sequenceNumber":1,"previous":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:33.722276000Z","foo":"bar","bar":"foo"}`) {
-		return fmt.Errorf("sn 1 had unexpected values")
+		return fmt.Errorf("sn 1 had unexpected values: %s", jsonRecord)
 	}
 
-	if err := createFixedVerifiableVersion(r, "2025-10-13T20:25:34.722276000Z"); err != nil {
+	at = at.Add(time.Second)
+	if err := createFixedVerifiableVersion(r, primitives.Timestamp(at)); err != nil {
 		return err
 	}
 
@@ -137,46 +147,17 @@ func exerciseFixedVerifiableRecorder() error {
 	}
 
 	if !strings.EqualFold(string(jsonRecord), `{"id":"EK-eJ0YStKtbjNoLeFUrC1secwP9rtqE4gQ9_cKKwmuu","prefix":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","sequenceNumber":2,"previous":"EO_wM1UoWjk4aTOkrOdN56JxfNJBwGpKDpFAcaSlEiB3","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:34.722276000Z","foo":"bar","bar":"foo"}`) {
-		return fmt.Errorf("sn 2 had unexpected values")
+		return fmt.Errorf("sn 2 had unexpected values: %s", jsonRecord)
 	}
 
 	return nil
 }
 
-func createFixedVerifiableVersion(r primitives.VerifiableAndRecordable, at string) error {
+func createFixedVerifiableVersion(r primitives.VerifiableAndRecordable, at primitives.Timestamp) error {
 	noncer := &FixedNoncer{}
+	when := &at
 
-	firstRecord := false
-	if strings.EqualFold(r.GetId(), "") {
-		firstRecord = true
-	}
-
-	if !firstRecord {
-		r.SetPrevious(r.GetId())
-		r.SetSequenceNumber(r.GetSequenceNumber() + 1)
-	}
-
-	if err := r.GenerateNonce(noncer); err != nil {
-		return err
-	}
-
-	when, err := time.Parse(time.RFC3339Nano, at)
-	if err != nil {
-		return err
-	}
-	r.StampCreatedAt((*primitives.Timestamp)(&when))
-
-	if firstRecord {
-		if err := primitives.CreatePrefix(r); err != nil {
-			return err
-		}
-	} else {
-		if err := primitives.SelfAddress(r); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return createVerifiableVersion(r, when, noncer)
 }
 
 type SignableRecord struct {
@@ -205,7 +186,12 @@ func exerciseFixedSignableRecorder() error {
 		return err
 	}
 
-	if err := createFixedSignedVersion(r, "2025-10-13T20:25:32.722276000Z", key); err != nil {
+	at, err := time.Parse(time.RFC3339Nano, "2025-10-13T20:25:32.722276000Z")
+	if err != nil {
+		return err
+	}
+
+	if err := createFixedSignedVersion(r, primitives.Timestamp(at), key); err != nil {
 		return err
 	}
 
@@ -226,7 +212,8 @@ func exerciseFixedSignableRecorder() error {
 		return fmt.Errorf("sn 0 had unexpected signature: %s", r.Signature)
 	}
 
-	if err := createFixedSignedVersion(r, "2025-10-13T20:25:33.722276000Z", key); err != nil {
+	at = at.Add(time.Second)
+	if err := createFixedSignedVersion(r, primitives.Timestamp(at), key); err != nil {
 		return err
 	}
 
@@ -247,7 +234,8 @@ func exerciseFixedSignableRecorder() error {
 		return fmt.Errorf("sn 1 had unexpected signature: %s", r.Signature)
 	}
 
-	if err := createFixedSignedVersion(r, "2025-10-13T20:25:34.722276000Z", key); err != nil {
+	at = at.Add(time.Second)
+	if err := createFixedSignedVersion(r, primitives.Timestamp(at), key); err != nil {
 		return err
 	}
 
@@ -272,7 +260,7 @@ func exerciseFixedSignableRecorder() error {
 	return nil
 }
 
-func createFixedSignedVersion(s primitives.SignableAndRecordable, at string, key interfaces.SigningKey) error {
+func createFixedSignedVersion(s primitives.SignableAndRecordable, at primitives.Timestamp, key interfaces.SigningKey) error {
 	if err := createFixedVerifiableVersion(s, at); err != nil {
 		return err
 	}
