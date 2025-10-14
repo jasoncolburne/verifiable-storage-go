@@ -42,21 +42,31 @@ func prepareVerifiableRecord(record primitives.VerifiableAndRecordable, noncer i
 }
 
 func prepareSearchableRecord(record primitives.SearchableAndRecordable, noncer interfaces.Noncer) error {
-	record.SetSearchKey(record.DeriveSearchKey())
+	if err := prepareVerifiableRecord(record, noncer); err != nil {
+		return err
+	}
 
-	return prepareVerifiableRecord(record, noncer)
+	record.SetSearchKey(record.DeriveSearchKey())
+	return nil
 }
 
 func prepareSignableRecord(record primitives.SignableAndRecordable, noncer interfaces.Noncer, key interfaces.SigningKey) error {
+	if err := prepareVerifiableRecord(record, noncer); err != nil {
+		return err
+	}
+
 	if err := algorithms.Sign(record, key); err != nil {
 		return err
 	}
 
-	return prepareVerifiableRecord(record, noncer)
+	return nil
 }
 
 func prepareSignableSearchableRecord(record primitives.SignableAndSearchableAndRecordable, noncer interfaces.Noncer, key interfaces.SigningKey) error {
-	record.SetSearchKey(record.DeriveSearchKey())
+	if err := prepareSignableRecord(record, noncer, key); err != nil {
+		return err
+	}
 
-	return prepareSignableRecord(record, noncer, key)
+	record.SetSearchKey(record.DeriveSearchKey())
+	return nil
 }

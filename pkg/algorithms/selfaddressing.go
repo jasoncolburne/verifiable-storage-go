@@ -34,6 +34,10 @@ func SelfAddress(s primitives.SelfAddressable) error {
 func VerifyAddress(s primitives.SelfAddressable) error {
 	oldId := s.GetId()
 
+	defer func() {
+		s.SetId(oldId)
+	}()
+
 	if err := SelfAddress(s); err != nil {
 		return err
 	}
@@ -41,8 +45,6 @@ func VerifyAddress(s primitives.SelfAddressable) error {
 	if !strings.EqualFold(s.GetId(), oldId) {
 		return fmt.Errorf("address verification failed")
 	}
-
-	s.SetId(oldId)
 
 	return nil
 }

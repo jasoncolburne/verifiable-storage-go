@@ -23,6 +23,11 @@ func VerifyPrefix(p primitives.Prefixable) error {
 	oldId := p.GetId()
 	oldPrefix := p.GetPrefix()
 
+	defer func() {
+		p.SetId(oldId)
+		p.SetPrefix(oldPrefix)
+	}()
+
 	if err := CreatePrefix(p); err != nil {
 		return err
 	}
@@ -34,9 +39,6 @@ func VerifyPrefix(p primitives.Prefixable) error {
 	if !strings.EqualFold(p.GetId(), oldPrefix) {
 		return fmt.Errorf("prefix verification failed")
 	}
-
-	p.SetId(oldId)
-	p.SetPrefix(oldPrefix)
 
 	return nil
 
