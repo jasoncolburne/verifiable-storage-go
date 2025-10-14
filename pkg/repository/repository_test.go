@@ -116,5 +116,9 @@ func exerciseSignableRepository() error {
 		return fmt.Errorf("mismatched prefixes")
 	}
 
+	if strings.EqualFold(reloadedRecord.Id, record.Id) {
+		return fmt.Errorf("unexpected equal ids")
+	}
+
 	return nil
 }
