@@ -29,7 +29,7 @@ func NewSignableRepository[T primitives.SignableAndRecordable](store data.Store,
 }
 
 func (r SignableRepository[T]) CreateVersion(record T) error {
-	prepareSignableRecord(record, r.noncer, r.signingKey)
+	prepareSignedRecord(record, r.noncer, r.signingKey)
 
 	if r.write {
 		// write to data store

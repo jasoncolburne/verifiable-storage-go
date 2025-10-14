@@ -41,7 +41,7 @@ func prepareVerifiableRecord(record primitives.VerifiableAndRecordable, noncer i
 	return nil
 }
 
-func prepareSignableRecord(record primitives.SignableAndRecordable, noncer interfaces.Noncer, key interfaces.SigningKey) error {
+func prepareSignedRecord(record primitives.SignableAndRecordable, noncer interfaces.Noncer, key interfaces.SigningKey) error {
 	if err := prepareVerifiableRecord(record, noncer); err != nil {
 		return err
 	}
