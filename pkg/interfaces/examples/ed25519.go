@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	interfaces "github.com/jasoncolburne/verifiable-storage-go/pkg/crypto"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
 )
 
 type Ed25519VerificationKey struct {

@@ -1,4 +1,4 @@
-package verifiablestorage
+package primitives
 
 type VerifiableAndRecordable interface {
 	Prefixable // this depends on SelfAddressable

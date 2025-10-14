@@ -1,4 +1,4 @@
-package verifiablestorage_test
+package primitives_test
 
 import (
 	"encoding/json"
@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	verifiablestorage "github.com/jasoncolburne/verifiable-storage-go/pkg"
-	"github.com/jasoncolburne/verifiable-storage-go/pkg/crypto"
-	"github.com/jasoncolburne/verifiable-storage-go/pkg/crypto/examples"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces/examples"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
 )
 
 type Record struct {
-	verifiablestorage.VerifiableRecorder
+	primitives.VerifiableRecorder
 	Foo string `db:"foo" json:"foo"`
 	Bar string `db:"bar" json:"bar"`
 }
@@ -52,7 +52,7 @@ func exerciseVerifiableRecorder() error {
 	return nil
 }
 
-func createVersion(r verifiablestorage.VerifiableAndRecordable, noncer crypto.Noncer) error {
+func createVersion(r primitives.VerifiableAndRecordable, noncer interfaces.Noncer) error {
 	firstRecord := false
 	if strings.EqualFold(r.GetId(), "") {
 		firstRecord = true
@@ -70,11 +70,11 @@ func createVersion(r verifiablestorage.VerifiableAndRecordable, noncer crypto.No
 	r.StampCreatedAt(nil)
 
 	if firstRecord {
-		if err := verifiablestorage.CreatePrefix(r); err != nil {
+		if err := primitives.CreatePrefix(r); err != nil {
 			return err
 		}
 	} else {
-		if err := verifiablestorage.SelfAddress(r); err != nil {
+		if err := primitives.SelfAddress(r); err != nil {
 			return err
 		}
 	}
@@ -143,7 +143,7 @@ func exerciseFixedVerifiableRecorder() error {
 	return nil
 }
 
-func createFixedVerifiableVersion(r verifiablestorage.VerifiableAndRecordable, at string) error {
+func createFixedVerifiableVersion(r primitives.VerifiableAndRecordable, at string) error {
 	noncer := &FixedNoncer{}
 
 	firstRecord := false
@@ -164,14 +164,14 @@ func createFixedVerifiableVersion(r verifiablestorage.VerifiableAndRecordable, a
 	if err != nil {
 		return err
 	}
-	r.StampCreatedAt((*verifiablestorage.Timestamp)(&when))
+	r.StampCreatedAt((*primitives.Timestamp)(&when))
 
 	if firstRecord {
-		if err := verifiablestorage.CreatePrefix(r); err != nil {
+		if err := primitives.CreatePrefix(r); err != nil {
 			return err
 		}
 	} else {
-		if err := verifiablestorage.SelfAddress(r); err != nil {
+		if err := primitives.SelfAddress(r); err != nil {
 			return err
 		}
 	}
@@ -180,7 +180,7 @@ func createFixedVerifiableVersion(r verifiablestorage.VerifiableAndRecordable, a
 }
 
 type SignableRecord struct {
-	verifiablestorage.SignableRecorder
+	primitives.SignableRecorder
 	Foo string `db:"foo" json:"foo"`
 	Bar string `db:"bar" json:"bar"`
 }
@@ -272,19 +272,19 @@ func exerciseFixedSignableRecorder() error {
 	return nil
 }
 
-func createFixedSignedVersion(s verifiablestorage.SignableAndRecordable, at string, key crypto.SigningKey) error {
+func createFixedSignedVersion(s primitives.SignableAndRecordable, at string, key interfaces.SigningKey) error {
 	if err := createFixedVerifiableVersion(s, at); err != nil {
 		return err
 	}
 
-	if err := verifiablestorage.Sign(s, key); err != nil {
+	if err := primitives.Sign(s, key); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func verifySignature(s verifiablestorage.SignableAndRecordable, key crypto.SigningKey) error {
+func verifySignature(s primitives.SignableAndRecordable, key interfaces.SigningKey) error {
 	identity, err := key.Identity()
 	if err != nil {
 		return err
@@ -300,7 +300,7 @@ func verifySignature(s verifiablestorage.SignableAndRecordable, key crypto.Signi
 	verificationKeyStore := examples.NewVerificationKeyStore()
 	verificationKeyStore.Add(identity, verificationKey)
 
-	if err := verifiablestorage.VerifySignature(s, verificationKeyStore); err != nil {
+	if err := primitives.VerifySignature(s, verificationKeyStore); err != nil {
 		return err
 	}
 

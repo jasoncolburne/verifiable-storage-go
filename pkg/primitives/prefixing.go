@@ -1,4 +1,4 @@
-package verifiablestorage
+package primitives
 
 import (
 	"fmt"

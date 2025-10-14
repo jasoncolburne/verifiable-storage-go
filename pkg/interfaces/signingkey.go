@@ -1,4 +1,4 @@
-package crypto
+package interfaces
 
 type SigningKey interface {
 	VerificationKey

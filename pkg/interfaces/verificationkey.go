@@ -1,4 +1,4 @@
-package crypto
+package interfaces
 
 type VerificationKey interface {
 	Verifier() Verifier

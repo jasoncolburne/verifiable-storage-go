@@ -1,9 +1,9 @@
-package verifiablestorage
+package primitives
 
 import (
 	"encoding/json"
 
-	"github.com/jasoncolburne/verifiable-storage-go/pkg/crypto"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
 )
 
 type Signable interface {
@@ -34,7 +34,7 @@ func (s Signer) GetSigningIdentity() string {
 	return s.SigningIdentity
 }
 
-func Sign(s Signable, key crypto.SigningKey) error {
+func Sign(s Signable, key interfaces.SigningKey) error {
 	identity, err := key.Identity()
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func Sign(s Signable, key crypto.SigningKey) error {
 	return nil
 }
 
-func VerifySignature(s Signable, verificationKeyStore crypto.VerificationKeyStore) error {
+func VerifySignature(s Signable, verificationKeyStore interfaces.VerificationKeyStore) error {
 	verificationKey, err := verificationKeyStore.Get(s.GetSigningIdentity())
 	if err != nil {
 		return err
