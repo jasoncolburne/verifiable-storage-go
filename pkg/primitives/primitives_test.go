@@ -63,7 +63,7 @@ func createVerifiableVersion(r primitives.VerifiableAndRecordable, at *primitive
 	if !firstRecord {
 		r.SetPrevious(r.GetId())
 		sequenceNumber := r.GetSequenceNumber()
-		sequenceNumber.Add(&sequenceNumber, big.NewInt(1))
+		sequenceNumber.Add(sequenceNumber, big.NewInt(1))
 		r.SetSequenceNumber(sequenceNumber)
 	}
 

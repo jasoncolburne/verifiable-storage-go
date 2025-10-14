@@ -8,19 +8,8 @@ type VerifiableAndRecordable interface {
 	Timestampable
 }
 
-type SearchableAndRecordable interface {
-	VerifiableAndRecordable
-	Searchable
-	DeriveSearchKey() string // up to the implementer
-}
-
 type SignableAndRecordable interface {
 	VerifiableAndRecordable
-	Signable
-}
-
-type SignableAndSearchableAndRecordable interface {
-	SearchableAndRecordable
 	Signable
 }
 
@@ -32,17 +21,7 @@ type VerifiableRecorder struct {
 	Timestamper // created_at
 }
 
-type SearchableRecorder struct {
-	VerifiableRecorder
-	Searcher
-}
-
 type SignableRecorder struct {
 	VerifiableRecorder
 	Signer // signingIdentity, signature
-}
-
-type SignableSearchableRecorder struct {
-	SearchableRecorder
-	Signer
 }

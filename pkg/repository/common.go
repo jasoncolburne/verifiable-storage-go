@@ -18,7 +18,7 @@ func prepareVerifiableRecord(record primitives.VerifiableAndRecordable, noncer i
 	if !firstRecord {
 		record.SetPrevious(record.GetId())
 		sequenceNumber := record.GetSequenceNumber()
-		sequenceNumber.Add(&sequenceNumber, big.NewInt(1))
+		sequenceNumber.Add(sequenceNumber, big.NewInt(1))
 		record.SetSequenceNumber(sequenceNumber)
 	}
 
@@ -41,15 +41,6 @@ func prepareVerifiableRecord(record primitives.VerifiableAndRecordable, noncer i
 	return nil
 }
 
-func prepareSearchableRecord(record primitives.SearchableAndRecordable, noncer interfaces.Noncer) error {
-	if err := prepareVerifiableRecord(record, noncer); err != nil {
-		return err
-	}
-
-	record.SetSearchKey(record.DeriveSearchKey())
-	return nil
-}
-
 func prepareSignableRecord(record primitives.SignableAndRecordable, noncer interfaces.Noncer, key interfaces.SigningKey) error {
 	if err := prepareVerifiableRecord(record, noncer); err != nil {
 		return err
@@ -59,14 +50,5 @@ func prepareSignableRecord(record primitives.SignableAndRecordable, noncer inter
 		return err
 	}
 
-	return nil
-}
-
-func prepareSignableSearchableRecord(record primitives.SignableAndSearchableAndRecordable, noncer interfaces.Noncer, key interfaces.SigningKey) error {
-	if err := prepareSignableRecord(record, noncer, key); err != nil {
-		return err
-	}
-
-	record.SetSearchKey(record.DeriveSearchKey())
 	return nil
 }
