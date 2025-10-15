@@ -43,7 +43,7 @@ func (t *Timestamp) UnmarshalJSON(b []byte) error {
 }
 
 func (t Timestamp) Value() (driver.Value, error) {
-	return time.Time(t).Format("2006-01-02 15:04:05.000000"), nil
+	return time.Time(t).Format(ConsistentNano), nil
 }
 
 func (t *Timestamp) Scan(src any) error {
