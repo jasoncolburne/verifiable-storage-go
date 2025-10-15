@@ -209,6 +209,10 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 		return err
 	}
 
+	if !strings.EqualFold(record0.GetId(), record0.GetPrefix()) {
+		return fmt.Errorf("unexpected prefix/id combination for 0")
+	}
+
 	if record0.GetSequenceNumber() != 0 {
 		return fmt.Errorf("unexpected sn for 0: %d", record0.GetSequenceNumber())
 	}
