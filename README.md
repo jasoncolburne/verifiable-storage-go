@@ -9,7 +9,8 @@ This provides an interface for versioned, verifiable, optionally signed model re
 minimal setup.
 
 Data is never deleted, as this is designed to support a decentralized deployment and if you release
-data into the wild, it can never be undone - you can at most append to it.
+data into the wild, it can never be undone - you can at most append to it. There are no deletes or
+updates in this api.
 
 The notion of a `prefix` is one where the first id in the chain of record versions represents the
 entire chain. This prefix is embedded in each record and does not change.
