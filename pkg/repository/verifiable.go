@@ -206,10 +206,12 @@ func (r VerifiableRepository[T]) getLeafFieldNames(t reflect.Type) (names []stri
 		} else {
 			// Use db tag if present.
 			tag := field.Tag.Get("db")
-			if tag != "" && tag != "-" {
-				names = append(names, tag)
-			} else {
-				names = append(names, field.Name)
+			if tag != "-" {
+				if tag == "" {
+					names = append(names, field.Name)
+				} else {
+					names = append(names, tag)
+				}
 			}
 		}
 	}
