@@ -3,13 +3,16 @@ A prefixable, self-addressing (tamper evident), sequenced, chained data store wi
 
 Ideas here were derived from KERI's KELs.
 
+## Getting Started
+
 To start, look in `pkg/repository/repository_test.go`.
 
 This provides an interface for versioned, verifiable, optionally signed model repositories with
 minimal setup.
 
 Data is never deleted, as this is designed to support a decentralized deployment and if you release
-data into the wild, it can never be undone - you can at most append to it.
+data into the wild, it can never be undone - you can at most append to it. There are no deletes or
+updates in this api.
 
 The notion of a `prefix` is one where the first id in the chain of record versions represents the
 entire chain. This prefix is embedded in each record and does not change.
@@ -22,7 +25,7 @@ The typical pattern then, is:
 
 That said, a couple other APIs are supported (`GetById()` and `ListByPrefix()`).
 
-Concepts:
+## Concepts
 
 - Chains: Like a blockchain, each record (other than the first) points to the previous record
 with a hash commitment.
@@ -39,10 +42,12 @@ writes to the same chain of data based on the same record - both would have the 
 number).
 - Timestamping: Each record is timestamped.
 
-Optional:
+### Optional
 
 - Signing: Records can be signed and when they are, two fields are added. One for the signature
 itself, and the other to identify the signer.
+
+## Verification
 
 As data is read from a repository, it is verified for id/data validity, and if signed, the
 signature is also verified.
