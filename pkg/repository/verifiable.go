@@ -86,9 +86,6 @@ func (r VerifiableRepository[T]) insertRecord(ctx context.Context, record T) err
 	innerFields := strings.Join(fieldNames, ", ")
 	innerValues := strings.Join(fieldNames, ", :")
 
-	fmt.Printf("%s\n", innerFields)
-	fmt.Printf("%s\n", innerValues)
-
 	// write to data store
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (:%s)", record.TableName(), innerFields, innerValues)
 
