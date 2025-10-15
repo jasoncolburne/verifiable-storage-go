@@ -281,6 +281,10 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 
 	// ensure record ids match
 	for i, record := range records {
+		if int(record.GetSequenceNumber()) != i {
+			return fmt.Errorf("incorrect sequence number for %d", i)
+		}
+
 		switch i {
 		case 0:
 			if !strings.EqualFold(record0.GetId(), record.GetId()) {
