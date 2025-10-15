@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"encoding/json"
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -38,12 +36,6 @@ func prepareVerifiableRecord(record primitives.VerifiableAndRecordable, noncer i
 		}
 	}
 
-	jsonString, err := json.Marshal(record)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%s\n", jsonString)
-
 	return nil
 }
 
@@ -58,13 +50,6 @@ func prepareSignedRecord(record primitives.SignableAndRecordable, noncer interfa
 }
 
 func verifyRecord(record primitives.VerifiableAndRecordable) error {
-	jsonString, err := json.Marshal(record)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("%s\n", jsonString)
-
 	if record.GetSequenceNumber() == 0 {
 		if err := algorithms.VerifyPrefixAndData(record); err != nil {
 			return err
