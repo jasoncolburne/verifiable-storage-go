@@ -38,6 +38,12 @@ func prepareVerifiableRecord(record primitives.VerifiableAndRecordable, noncer i
 		}
 	}
 
+	jsonString, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s\n", jsonString)
+
 	return nil
 }
 
