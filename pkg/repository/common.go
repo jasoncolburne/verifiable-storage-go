@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"math/big"
 	"reflect"
 	"strings"
 
@@ -95,7 +94,7 @@ func getLeafFieldNames(t reflect.Type) (names []string) {
 		field := t.Field(i)
 		fieldType := field.Type
 		// If field is itself a struct (and not a time.Time or slice/map), recurse.
-		if fieldType.Kind() == reflect.Struct && fieldType != reflect.TypeOf(primitives.Timestamp{}) && fieldType != reflect.TypeOf(big.Int{}) {
+		if fieldType.Kind() == reflect.Struct && fieldType != reflect.TypeOf(primitives.Timestamp{}) {
 			nested := getLeafFieldNames(fieldType)
 			names = append(names, nested...)
 		} else {
