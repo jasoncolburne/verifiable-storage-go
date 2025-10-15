@@ -12,6 +12,34 @@ import (
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/repository"
 )
 
+type DeterministicModel struct {
+	primitives.VerifiableRecorder
+	Foo string `db:"foo" json:"foo"`
+	Bar string `db:"bar" json:"bar"`
+}
+
+func (*DeterministicModel) TableName() string {
+	return `deterministic`
+}
+
+var DETERMINISTIC_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS deterministic (
+	-- Standard fields
+    id              	TEXT PRIMARY KEY,
+	prefix				TEXT NOT NULL,
+	previous        	TEXT,
+	sequence_number 	BIGINT NOT NULL,
+	created_at          DATETIME NOT NULL,
+
+	-- Model-specific fields
+	foo 				TEXT NOT NULL,
+	bar                 TEXT NOT NULL,
+
+	-- Uniqueness constraint for sequence numbers
+	UNIQUE(prefix, sequence_number)
+);
+`
+
 type VerifiableModel struct {
 	primitives.VerifiableRecorder
 	Foo string `db:"foo" json:"foo"`
@@ -73,6 +101,49 @@ CREATE TABLE IF NOT EXISTS signable (
 	UNIQUE(prefix, sequence_number)
 );
 `
+
+func TestDeterministicRepository(t *testing.T) {
+	repository, err := createDeterministicRepository()
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	record := &DeterministicModel{
+		Foo: "bar",
+		Bar: "baz",
+	}
+
+	buffers := []*DeterministicModel{{}, {}, {}}
+
+	if err := exerciseRepository(repository, record, buffers); err != nil {
+		fmt.Printf("%s\n", err)
+		t.Fail()
+	}
+}
+
+func createDeterministicRepository() (repository.Repository[*DeterministicModel], error) {
+	ctx := context.Background()
+
+	store, err := data.NewInMemorySQLiteStore()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = store.Sql().ExecContext(ctx, DETERMINISTIC_TABLE_SQL)
+	if err != nil {
+		return nil, err
+	}
+
+	// no noncer here
+	repository := repository.NewVerifiableRepository[*DeterministicModel](
+		store,
+		true,
+		nil,
+	)
+
+	return repository, nil
+}
 
 func TestVerifiableRepository(t *testing.T) {
 	repository, err := createVerifiableRepository()
