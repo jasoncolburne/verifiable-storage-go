@@ -20,7 +20,12 @@ type VerifiableRepository[T primitives.VerifiableAndRecordable] struct {
 	write bool
 }
 
-func NewVerifiableRepository[T primitives.VerifiableAndRecordable](store data.Store, write bool, noncer interfaces.Noncer) *VerifiableRepository[T] {
+// pass a nil noncer to omit nonces
+func NewVerifiableRepository[T primitives.VerifiableAndRecordable](
+	store data.Store,
+	write bool,
+	noncer interfaces.Noncer,
+) *VerifiableRepository[T] {
 	return &VerifiableRepository[T]{
 		store:  store,
 		noncer: noncer,

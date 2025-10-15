@@ -16,6 +16,7 @@ type SignableRepository[T primitives.SignableAndRecordable] struct {
 	verificationKeyStore interfaces.VerificationKeyStore
 }
 
+// pass a nil noncer to omit nonces
 func NewSignableRepository[T primitives.SignableAndRecordable](
 	store data.Store,
 	write bool,
