@@ -7,7 +7,7 @@ type Nonceable interface {
 }
 
 type Noncer struct {
-	Nonce string `db:"nonce" json:"nonce"`
+	Nonce *string `db:"nonce,omitempty" json:"nonce,omitempty"`
 }
 
 func (n *Noncer) GenerateNonce(source interfaces.Noncer) error {
@@ -16,7 +16,7 @@ func (n *Noncer) GenerateNonce(source interfaces.Noncer) error {
 		return err
 	}
 
-	n.Nonce = nonce
+	n.Nonce = &nonce
 
 	return nil
 }

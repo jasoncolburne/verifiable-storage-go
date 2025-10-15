@@ -20,7 +20,12 @@ type VerifiableRepository[T primitives.VerifiableAndRecordable] struct {
 	write bool
 }
 
-func NewVerifiableRepository[T primitives.VerifiableAndRecordable](store data.Store, write bool, noncer interfaces.Noncer) *VerifiableRepository[T] {
+// pass a nil noncer to omit nonces
+func NewVerifiableRepository[T primitives.VerifiableAndRecordable](
+	store data.Store,
+	write bool,
+	noncer interfaces.Noncer,
+) *VerifiableRepository[T] {
 	return &VerifiableRepository[T]{
 		store:  store,
 		noncer: noncer,
@@ -94,8 +99,10 @@ func (r VerifiableRepository[T]) prepareVerifiableRecord(record T, noncer interf
 		record.SetSequenceNumber(record.GetSequenceNumber() + 1)
 	}
 
-	if err := record.GenerateNonce(noncer); err != nil {
-		return err
+	if noncer != nil {
+		if err := record.GenerateNonce(noncer); err != nil {
+			return err
+		}
 	}
 
 	record.StampCreatedAt(nil)
@@ -182,37 +189,48 @@ func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, record
 // sql helper helpers
 
 func (r VerifiableRepository[T]) getFieldNames(s T) (fields []string) {
-	t := reflect.TypeOf(s)
-	return r.getLeafFieldNames(t)
+	val := reflect.ValueOf(s)
+	typ := val.Type()
+	return r.getLeafFieldNamesWithValues(typ, val)
 }
 
-func (r VerifiableRepository[T]) getLeafFieldNames(t reflect.Type) (names []string) {
-	// If pointer, deref.
-	if t.Kind() == reflect.Pointer {
+func (r VerifiableRepository[T]) getLeafFieldNamesWithValues(t reflect.Type, v reflect.Value) []string {
+	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
-	}
-	// Process only struct types.
-	if t.Kind() != reflect.Struct {
-		return names
+		if v.Kind() == reflect.Ptr && !v.IsNil() {
+			v = v.Elem()
+		}
 	}
 
+	if t.Kind() != reflect.Struct {
+		return []string{}
+	}
+
+	var names []string
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		fieldType := field.Type
-		// If field is itself a struct (and not a time.Time or slice/map), recurse.
+		fieldVal := v.Field(i)
+
 		if fieldType.Kind() == reflect.Struct && fieldType != reflect.TypeOf(primitives.Timestamp{}) {
-			nested := r.getLeafFieldNames(fieldType)
+			nested := r.getLeafFieldNamesWithValues(fieldType, fieldVal)
 			names = append(names, nested...)
+			continue
+		}
+
+		tag := field.Tag.Get("db")
+
+		if strings.Contains(tag, "omitempty") && fieldVal.IsNil() {
+			continue
+		}
+		if tag == "-" {
+			continue
+		}
+
+		if tag == "" {
+			names = append(names, field.Name)
 		} else {
-			// Use db tag if present.
-			tag := field.Tag.Get("db")
-			if tag != "-" {
-				if tag == "" {
-					names = append(names, field.Name)
-				} else {
-					names = append(names, tag)
-				}
-			}
+			names = append(names, strings.TrimSuffix(tag, ",omitempty"))
 		}
 	}
 	return names

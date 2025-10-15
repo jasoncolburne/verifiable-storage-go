@@ -29,8 +29,10 @@ That said, a couple other APIs are supported (`GetById()` and `ListByPrefix()`).
 
 - **Chains**: Like a blockchain, each record (other than the first) points to the previous record
 with a hash commitment.
-- **Nonces**: Each record contains a nonce to add uniqueness. In some cases this may be undesirable
-and likely warrants configuration, but for the majority of cases this is what you need.
+- **Nonces**: Each record contains a nonce to add uniqueness. In some cases this may be undesirable,
+but for the majority of cases this is what you need. If you want more determinism (duplicate
+prevention for instance) you can supply a nil noncer to the repository creation method and the field
+will be omitted.
 - **Prefixes**: A self-address derived during creation of the first record in a chain. This value is
 both the id and the prefix of that record, and it is the prefix of future records in the chain.
 - **Self-Addresses**: A self-address is an id (named `id`) embedded in the data itself that is derived
