@@ -1,0 +1,113 @@
+package repository
+
+import (
+	"context"
+
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/algorithms"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
+)
+
+type SignableRepository[T primitives.SignableAndRecordable] struct {
+	VerifiableRepository[T]
+
+	signingKey           interfaces.SigningKey
+	verificationKeyStore interfaces.VerificationKeyStore
+}
+
+func NewSignableRepository[T primitives.SignableAndRecordable](
+	store data.Store,
+	write bool,
+	noncer interfaces.Noncer,
+	signingKey interfaces.SigningKey,
+	verificationKeyStore interfaces.VerificationKeyStore,
+) *SignableRepository[T] {
+	return &SignableRepository[T]{
+		VerifiableRepository: VerifiableRepository[T]{
+			store:  store,
+			noncer: noncer,
+
+			write: write,
+		},
+
+		signingKey:           signingKey,
+		verificationKeyStore: verificationKeyStore,
+	}
+}
+
+func (r SignableRepository[T]) CreateVersion(ctx context.Context, record T) error {
+	if err := r.prepareSignedRecord(record, r.noncer, r.signingKey); err != nil {
+		return err
+	}
+
+	if r.write {
+		if err := r.insertRecord(ctx, record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r SignableRepository[T]) GetById(ctx context.Context, record T, id string) error {
+	if err := r.getRecordById(ctx, record, id); err != nil {
+		return err
+	}
+
+	if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r SignableRepository[T]) GetLatestByPrefix(ctx context.Context, record T, prefix string) error {
+	if err := r.getLatestRecordByPrefix(ctx, record, prefix); err != nil {
+		return err
+	}
+
+	if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, prefix string) error {
+	if err := r.listRecordsByPrefix(ctx, records, prefix); err != nil {
+		return err
+	}
+
+	for _, record := range *records {
+		if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// helpers
+
+func (r SignableRepository[T]) prepareSignedRecord(record T, noncer interfaces.Noncer, key interfaces.SigningKey) error {
+	if err := algorithms.Sign(record, key, func() error {
+		return r.prepareVerifiableRecord(record, noncer)
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r SignableRepository[T]) verifySignedRecord(record T, verificationKeyStore interfaces.VerificationKeyStore) error {
+	if err := algorithms.VerifySignature(record, verificationKeyStore); err != nil {
+		return err
+	}
+
+	if err := r.verifyRecord(record); err != nil {
+		return err
+	}
+
+	return nil
+}
