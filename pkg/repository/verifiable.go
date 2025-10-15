@@ -3,8 +3,10 @@ package repository
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/algorithms"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
@@ -28,7 +30,7 @@ func NewVerifiableRepository[T primitives.VerifiableAndRecordable](store data.St
 }
 
 func (r VerifiableRepository[T]) CreateVersion(ctx context.Context, record T) error {
-	if err := prepareVerifiableRecord(record, r.noncer); err != nil {
+	if err := r.prepareVerifiableRecord(record, r.noncer); err != nil {
 		return err
 	}
 
@@ -46,7 +48,7 @@ func (r VerifiableRepository[T]) GetById(ctx context.Context, record T, id strin
 		return err
 	}
 
-	if err := verifyRecord(record); err != nil {
+	if err := r.verifyRecord(record); err != nil {
 		return err
 	}
 
@@ -58,7 +60,7 @@ func (r VerifiableRepository[T]) GetLatestByPrefix(ctx context.Context, record T
 		return err
 	}
 
-	if err := verifyRecord(record); err != nil {
+	if err := r.verifyRecord(record); err != nil {
 		return err
 	}
 
@@ -71,7 +73,7 @@ func (r VerifiableRepository[T]) ListByPrefix(ctx context.Context, records *[]T,
 	}
 
 	for _, record := range *records {
-		if err := verifyRecord(record); err != nil {
+		if err := r.verifyRecord(record); err != nil {
 			return err
 		}
 	}
@@ -81,8 +83,54 @@ func (r VerifiableRepository[T]) ListByPrefix(ctx context.Context, records *[]T,
 
 // helpers
 
+func (r VerifiableRepository[T]) prepareVerifiableRecord(record T, noncer interfaces.Noncer) error {
+	firstRecord := false
+	if strings.EqualFold(record.GetId(), "") {
+		firstRecord = true
+	}
+
+	if !firstRecord {
+		record.SetPrevious(record.GetId())
+		record.SetSequenceNumber(record.GetSequenceNumber() + 1)
+	}
+
+	if err := record.GenerateNonce(noncer); err != nil {
+		return err
+	}
+
+	record.StampCreatedAt(nil)
+
+	if firstRecord {
+		if err := algorithms.CreatePrefix(record); err != nil {
+			return err
+		}
+	} else {
+		if err := algorithms.SelfAddress(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r VerifiableRepository[T]) verifyRecord(record T) error {
+	if record.GetSequenceNumber() == 0 {
+		if err := algorithms.VerifyPrefixAndData(record); err != nil {
+			return err
+		}
+	} else {
+		if err := algorithms.VerifyAddressAndData(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// sql helpers
+
 func (r VerifiableRepository[T]) insertRecord(ctx context.Context, record T) error {
-	fieldNames := getFieldNames(record)
+	fieldNames := r.getFieldNames(record)
 	innerFields := strings.Join(fieldNames, ", ")
 	innerValues := strings.Join(fieldNames, ", :")
 
@@ -129,4 +177,41 @@ func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, record
 	}
 
 	return nil
+}
+
+// sql helper helpers
+
+func (r VerifiableRepository[T]) getFieldNames(s T) (fields []string) {
+	t := reflect.TypeOf(s)
+	return r.getLeafFieldNames(t)
+}
+
+func (r VerifiableRepository[T]) getLeafFieldNames(t reflect.Type) (names []string) {
+	// If pointer, deref.
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	// Process only struct types.
+	if t.Kind() != reflect.Struct {
+		return names
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fieldType := field.Type
+		// If field is itself a struct (and not a time.Time or slice/map), recurse.
+		if fieldType.Kind() == reflect.Struct && fieldType != reflect.TypeOf(primitives.Timestamp{}) {
+			nested := r.getLeafFieldNames(fieldType)
+			names = append(names, nested...)
+		} else {
+			// Use db tag if present.
+			tag := field.Tag.Get("db")
+			if tag != "" && tag != "-" {
+				names = append(names, tag)
+			} else {
+				names = append(names, field.Name)
+			}
+		}
+	}
+	return names
 }

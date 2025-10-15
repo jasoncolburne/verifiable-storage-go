@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/algorithms"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
@@ -36,7 +37,7 @@ func NewSignableRepository[T primitives.SignableAndRecordable](
 }
 
 func (r SignableRepository[T]) CreateVersion(ctx context.Context, record T) error {
-	if err := prepareSignedRecord(record, r.noncer, r.signingKey); err != nil {
+	if err := r.prepareSignedRecord(record, r.noncer, r.signingKey); err != nil {
 		return err
 	}
 
@@ -54,7 +55,7 @@ func (r SignableRepository[T]) GetById(ctx context.Context, record T, id string)
 		return err
 	}
 
-	if err := verifySignedRecord(record, r.verificationKeyStore); err != nil {
+	if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
 		return err
 	}
 
@@ -66,7 +67,7 @@ func (r SignableRepository[T]) GetLatestByPrefix(ctx context.Context, record T, 
 		return err
 	}
 
-	if err := verifySignedRecord(record, r.verificationKeyStore); err != nil {
+	if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
 		return err
 	}
 
@@ -79,9 +80,33 @@ func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, p
 	}
 
 	for _, record := range *records {
-		if err := verifySignedRecord(record, r.verificationKeyStore); err != nil {
+		if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// helpers
+
+func (r SignableRepository[T]) prepareSignedRecord(record T, noncer interfaces.Noncer, key interfaces.SigningKey) error {
+	if err := algorithms.Sign(record, key, func() error {
+		return r.prepareVerifiableRecord(record, noncer)
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r SignableRepository[T]) verifySignedRecord(record T, verificationKeyStore interfaces.VerificationKeyStore) error {
+	if err := algorithms.VerifySignature(record, verificationKeyStore); err != nil {
+		return err
+	}
+
+	if err := r.verifyRecord(record); err != nil {
+		return err
 	}
 
 	return nil
