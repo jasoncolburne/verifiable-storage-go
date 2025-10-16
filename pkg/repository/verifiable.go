@@ -207,9 +207,9 @@ func (r VerifiableRepository[T]) getFieldNames(s T) (fields []string) {
 }
 
 func (r VerifiableRepository[T]) getLeafFieldNamesWithValues(t reflect.Type, v reflect.Value) []string {
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
-		if v.Kind() == reflect.Ptr && !v.IsNil() {
+		if v.Kind() == reflect.Pointer && !v.IsNil() {
 			v = v.Elem()
 		}
 	}
