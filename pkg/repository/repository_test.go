@@ -513,5 +513,22 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 		return fmt.Errorf("expected an error for get with no results")
 	}
 
+	twoRecords := []T{}
+
+	if err := repository.Select(ctx, &twoRecords, expressions.Any(
+		"id",
+		[]any{
+			record0.GetId(),
+			record1.GetId(),
+		},
+		data.NewAnyBuilder(),
+	), nil, nil); err != nil {
+		return err
+	}
+
+	if len(twoRecords) != 2 {
+		return fmt.Errorf("unexpected number of records returned: %d != %d", len(twoRecords), 2)
+	}
+
 	return nil
 }

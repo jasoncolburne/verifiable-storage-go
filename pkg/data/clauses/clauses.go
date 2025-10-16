@@ -15,8 +15,8 @@ func And(children []data.ClauseOrExpression) *AndClause {
 	return clause(children, &AndClause{})
 }
 
-func (a AndClause) String() string {
-	return a.string("AND")
+func (c AndClause) String() string {
+	return c.string("AND")
 }
 
 type OrClause struct {
@@ -27,8 +27,8 @@ func Or(children []data.ClauseOrExpression) *OrClause {
 	return clause(children, &OrClause{})
 }
 
-func (o OrClause) String() string {
-	return o.string("OR")
+func (c OrClause) String() string {
+	return c.string("OR")
 }
 
 type Clause struct {
