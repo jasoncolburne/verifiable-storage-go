@@ -162,7 +162,7 @@ func (r VerifiableRepository[T]) insertRecord(ctx context.Context, record T) err
 }
 
 func (r VerifiableRepository[T]) getRecordById(ctx context.Context, record T, id string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE id = %s", record.TableName(), r.store.Placeholder())
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id = %s", record.TableName(), r.store.Placeholders(1)[0])
 
 	if err := r.store.Sql().GetContext(ctx, record, query, id); err != nil {
 		return err
@@ -172,7 +172,7 @@ func (r VerifiableRepository[T]) getRecordById(ctx context.Context, record T, id
 }
 
 func (r VerifiableRepository[T]) getLatestRecordByPrefix(ctx context.Context, record T, prefix string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix = %s ORDER BY sequence_number DESC LIMIT 1", record.TableName(), r.store.Placeholder())
+	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix = %s ORDER BY sequence_number DESC LIMIT 1", record.TableName(), r.store.Placeholders(1)[0])
 
 	if err := r.store.Sql().GetContext(ctx, record, query, prefix); err != nil {
 		return err
@@ -182,7 +182,7 @@ func (r VerifiableRepository[T]) getLatestRecordByPrefix(ctx context.Context, re
 }
 
 func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, records *[]T, prefix string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix = %s ORDER BY sequence_number ASC", (*new(T)).TableName(), r.store.Placeholder())
+	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix = %s ORDER BY sequence_number ASC", (*new(T)).TableName(), r.store.Placeholders(1)[0])
 
 	if err := r.store.Sql().SelectContext(ctx, records, query, prefix); err != nil {
 		return err

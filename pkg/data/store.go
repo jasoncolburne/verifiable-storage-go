@@ -22,5 +22,5 @@ type Store interface {
 	Sql() SQLStore // May be an sql.Tx or sql.DB
 	// Kv() KVStore
 
-	Placeholder() string
+	Placeholders(count int) []string
 }
