@@ -150,8 +150,8 @@ func createDeterministicRepository() (repository.Repository[*DeterministicModel]
 	repository := repository.NewVerifiableRepository[*DeterministicModel](
 		store,
 		true,
-		false,
-		nil,
+		false, // important for determinism
+		nil,   // important for determinism
 	)
 
 	return repository, nil
