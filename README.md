@@ -26,9 +26,9 @@ The typical pattern then, is:
 That said, a few other direct APIs are supported (`GetById()` and `ListByPrefix()`), and some
 generic APIs exist (`Get()`, `Select()`, and `ListLatestByPrefix()`)
 
+### ListLatestByPrefix()
+
 ListLatestByPrefix deserves some discussion. It permits this kind of thing:
-
-
 
 ```go
 accountRecord := &AccountRecord{
