@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS verifiable (
 	prefix				TEXT NOT NULL,
 	previous        	TEXT,
 	sequence_number 	BIGINT NOT NULL,
+
+	-- Optional fields
 	created_at          DATETIME NOT NULL,
 	nonce           	TEXT NOT NULL,
 
@@ -85,10 +87,10 @@ CREATE TABLE IF NOT EXISTS signable (
 	prefix				TEXT NOT NULL,
 	previous        	TEXT,
 	sequence_number 	BIGINT NOT NULL,
+
+	-- Optional fields
 	created_at          DATETIME NOT NULL,
 	nonce           	TEXT NOT NULL,
-
-	-- Signable fields
 	signing_identity	TEXT NOT NULL,
 	signature       	TEXT NOT NULL,
 
