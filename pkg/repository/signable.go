@@ -40,7 +40,7 @@ func NewSignableRepository[T primitives.SignableAndRecordable](
 }
 
 func (r SignableRepository[T]) CreateVersion(ctx context.Context, record T) error {
-	if err := r.prepareSignedRecord(record, r.timestamp, r.noncer, r.signingKey); err != nil {
+	if err := r.prepareSignedRecord(record); err != nil {
 		return err
 	}
 
@@ -58,7 +58,7 @@ func (r SignableRepository[T]) GetById(ctx context.Context, record T, id string)
 		return err
 	}
 
-	if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+	if err := r.verifySignedRecord(record); err != nil {
 		return err
 	}
 
@@ -70,7 +70,7 @@ func (r SignableRepository[T]) GetLatestByPrefix(ctx context.Context, record T, 
 		return err
 	}
 
-	if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+	if err := r.verifySignedRecord(record); err != nil {
 		return err
 	}
 
@@ -83,7 +83,7 @@ func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, p
 	}
 
 	for _, record := range *records {
-		if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+		if err := r.verifySignedRecord(record); err != nil {
 			return err
 		}
 	}
@@ -93,14 +93,9 @@ func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, p
 
 // helpers
 
-func (r SignableRepository[T]) prepareSignedRecord(
-	record T,
-	timestamp bool,
-	noncer interfaces.Noncer,
-	key interfaces.SigningKey,
-) error {
-	if err := algorithms.Sign(record, key, func() error {
-		return r.prepareVerifiableRecord(record, timestamp, noncer)
+func (r SignableRepository[T]) prepareSignedRecord(record T) error {
+	if err := algorithms.Sign(record, r.signingKey, func() error {
+		return r.prepareVerifiableRecord(record)
 	}); err != nil {
 		return err
 	}
@@ -108,8 +103,8 @@ func (r SignableRepository[T]) prepareSignedRecord(
 	return nil
 }
 
-func (r SignableRepository[T]) verifySignedRecord(record T, verificationKeyStore interfaces.VerificationKeyStore) error {
-	if err := algorithms.VerifySignature(record, verificationKeyStore); err != nil {
+func (r SignableRepository[T]) verifySignedRecord(record T) error {
+	if err := algorithms.VerifySignature(record, r.verificationKeyStore); err != nil {
 		return err
 	}
 

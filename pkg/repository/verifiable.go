@@ -38,7 +38,7 @@ func NewVerifiableRepository[T primitives.VerifiableAndRecordable](
 }
 
 func (r VerifiableRepository[T]) CreateVersion(ctx context.Context, record T) error {
-	if err := r.prepareVerifiableRecord(record, r.timestamp, r.noncer); err != nil {
+	if err := r.prepareVerifiableRecord(record); err != nil {
 		return err
 	}
 
@@ -91,11 +91,7 @@ func (r VerifiableRepository[T]) ListByPrefix(ctx context.Context, records *[]T,
 
 // helpers
 
-func (r VerifiableRepository[T]) prepareVerifiableRecord(
-	record T,
-	timestamp bool,
-	noncer interfaces.Noncer,
-) error {
+func (r VerifiableRepository[T]) prepareVerifiableRecord(record T) error {
 	firstRecord := false
 	if strings.EqualFold(record.GetId(), "") {
 		firstRecord = true
@@ -106,13 +102,13 @@ func (r VerifiableRepository[T]) prepareVerifiableRecord(
 		record.SetSequenceNumber(record.GetSequenceNumber() + 1)
 	}
 
-	if noncer != nil {
-		if err := record.GenerateNonce(noncer); err != nil {
+	if r.noncer != nil {
+		if err := record.GenerateNonce(r.noncer); err != nil {
 			return err
 		}
 	}
 
-	if timestamp {
+	if r.timestamp {
 		record.StampCreatedAt(nil)
 	}
 
