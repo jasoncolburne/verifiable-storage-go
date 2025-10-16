@@ -451,7 +451,7 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 
 	moreRecords := []T{}
 
-	if err := repository.ListLatestByPrefix(ctx, &moreRecords, expressions.Equal("foo", "bar"), nil, nil); err != nil {
+	if err := repository.ListLatestByPrefix(ctx, &moreRecords, expressions.Equal("foo", "bar"), nil, nil, nil); err != nil {
 		return err
 	}
 
@@ -493,7 +493,7 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 
 	noRecords := []T{}
 
-	if err := repository.ListLatestByPrefix(ctx, &noRecords, expressions.Equal("foo", "foo"), nil, nil); err != nil {
+	if err := repository.ListLatestByPrefix(ctx, &noRecords, expressions.Equal("foo", "foo"), nil, nil, nil); err != nil {
 		return err
 	}
 

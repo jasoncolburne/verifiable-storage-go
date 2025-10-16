@@ -131,11 +131,12 @@ func (r VerifiableRepository[T]) Select(
 func (r VerifiableRepository[T]) ListLatestByPrefix(
 	ctx context.Context,
 	records *[]T,
+	preFilter data.ClauseOrExpression,
 	condition data.ClauseOrExpression,
 	order data.Ordering,
 	limit *uint,
 ) error {
-	if err := r.selectLatestByPrefix(ctx, records, condition, order, limit); err != nil {
+	if err := r.selectLatestByPrefix(ctx, records, preFilter, condition, order, limit); err != nil {
 		return err
 	}
 
@@ -263,26 +264,44 @@ func (r VerifiableRepository[T]) _select(
 func (r VerifiableRepository[T]) selectLatestByPrefix(
 	ctx context.Context,
 	records *[]T,
+	preFilter data.ClauseOrExpression,
 	condition data.ClauseOrExpression,
 	order data.Ordering,
 	limit *uint,
 ) error {
-	query := fmt.Sprintf(
-		`WITH sequentialranks AS (
-			SELECT
-				ROW_NUMBER() OVER (PARTITION BY prefix ORDER BY sequence_number DESC) AS _rank,
-				*
-			FROM %s
-		)
-		SELECT *
-		FROM sequentialranks
-		WHERE _rank=1 AND %s
+	if preFilter == nil {
+		return fmt.Errorf("for performance reasons, must supply a pre-filter")
+	}
+
+	values := []any{}
+	values = append(values, preFilter.Values()...)
+
+	innerQuery := fmt.Sprintf(
+		`SELECT
+			ROW_NUMBER() OVER (PARTITION BY prefix ORDER BY sequence_number DESC) AS _rank,
+			*
+		FROM %s
+		WHERE %s
 		`,
 		(*new(T)).TableName(),
-		condition.String(),
+		preFilter.String(),
 	)
 
-	return r.selectCore(ctx, records, query, condition.Values(), order, limit)
+	query := fmt.Sprintf(
+		`WITH sequentialranks AS (%s)
+		SELECT *
+		FROM sequentialranks
+		WHERE _rank=1
+		`,
+		innerQuery,
+	)
+
+	if condition != nil {
+		query += fmt.Sprintf(" AND %s", condition.String())
+		values = append(values, condition.Values()...)
+	}
+
+	return r.selectCore(ctx, records, query, values, order, limit)
 }
 
 func (r VerifiableRepository[T]) selectCore(

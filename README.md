@@ -47,12 +47,18 @@ r.CreateVersion(accountRecord)
 // versions of the record that were labeled as active, when really the most recent version has
 // rendered it inactive.
 
-// the below method accomodates this by first filtering down to the most recent records in sequences
-// only, using prefix as a partitioning field. then, the supplied conditions are applied.
+// the below method accomodates this by:
+// 1. filtering the table with the pre-filter (good for selecting all data for an account)
+// 2. reducing that result to only the latest records in each sequence
+// 3. filtering that result set with the condition
+
+// it's important to understand this, since putting the wrong filter in the wrong place
+// will yield totally different results and could ruin performance
 
 r.ListLatestByPrefix(
     ctx,
     &records, 
+    expressions.Equal("account_id", accountId),
     expressions.Equal("active", true),
     nil,
     nil
