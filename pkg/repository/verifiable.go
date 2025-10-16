@@ -197,9 +197,9 @@ func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, record
 
 func (r VerifiableRepository[T]) getFieldNames(s T) (fields []string) {
 	if r.fieldNames == nil {
-		val := reflect.ValueOf(s)
-		typ := val.Type()
-		fieldNames := r.getLeafFieldNamesWithValues(typ, val)
+		v := reflect.ValueOf(s)
+		t := v.Type()
+		fieldNames := r.getLeafFieldNamesWithValues(t, v)
 		r.fieldNames = &fieldNames
 	}
 
