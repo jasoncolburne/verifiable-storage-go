@@ -53,6 +53,10 @@ lack of a timestamp, disable this and nonces.
 - **Signing**: Records can be signed and when they are, two fields are added. One for the signature
 itself, and the other to identify the signer.
 
+It's worth noting that you'll still have a `CreatedAt` and `Nonce` field on the struct you're using
+even if you disable them (as pointers). Just don't assign them, the code omits them from writes
+and computations if they aren't set.
+
 ## Verification
 
 As data is read from a repository, it is verified for id/data validity, and if signed, the
