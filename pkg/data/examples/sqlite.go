@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
 	"github.com/jmoiron/sqlx"
@@ -76,4 +78,25 @@ func (s *SQLiteStore) RollbackTransaction() error {
 	s.tx = nil
 
 	return nil
+}
+
+type AnyBuilder struct{}
+
+func NewAnyBuilder() *AnyBuilder {
+	return &AnyBuilder{}
+}
+
+func (AnyBuilder) String(column string, values []any) string {
+	placeholders := slices.Repeat([]string{"?"}, len(values))
+	// for postgres i believe it would just be:
+	//  expression := fmt.Sprintf("%s=ANY(?)", column)
+	expression := fmt.Sprintf("%s IN (%s)", column, strings.Join(placeholders, ", "))
+
+	return expression
+}
+
+func (AnyBuilder) Values(values []any) []any {
+	// for postgres it would be something like:
+	//  return []any{pq.Array(values)}
+	return values
 }

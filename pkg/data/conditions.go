@@ -13,3 +13,8 @@ type Clause interface {
 type Ordering interface {
 	String() string
 }
+
+type AnyBuilder interface {
+	String(column string, values []any) string
+	Values(values []any) []any
+}

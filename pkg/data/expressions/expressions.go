@@ -1,6 +1,10 @@
 package expressions
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
+)
 
 type SeparatedColumnAndValueExpression struct {
 	separator string
@@ -142,4 +146,28 @@ func NotNull(column string) *NotNullExpression {
 			suffix: " IS NOT NULL",
 		},
 	}
+}
+
+/////////////////////////////
+
+type AnyExpression struct {
+	column     string
+	values     []any
+	anyBuilder data.AnyBuilder
+}
+
+func Any(column string, values []any, anyBuilder data.AnyBuilder) *AnyExpression {
+	return &AnyExpression{
+		column:     column,
+		values:     values,
+		anyBuilder: anyBuilder,
+	}
+}
+
+func (e AnyExpression) String() string {
+	return e.anyBuilder.String(e.column, e.values)
+}
+
+func (e AnyExpression) Values() []any {
+	return e.anyBuilder.Values(e.values)
 }
