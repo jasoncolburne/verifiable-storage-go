@@ -8,6 +8,8 @@ import (
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/algorithms"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/expressions"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/orderings"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
 )
@@ -219,33 +221,15 @@ func (r VerifiableRepository[T]) insertRecord(ctx context.Context, record T) err
 }
 
 func (r VerifiableRepository[T]) getRecordById(ctx context.Context, record T, id string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE id=?", record.TableName())
-
-	if err := r.store.Sql().GetContext(ctx, record, query, id); err != nil {
-		return err
-	}
-
-	return nil
+	return r.get(ctx, record, expressions.Equal("id", id), nil)
 }
 
 func (r VerifiableRepository[T]) getLatestRecordByPrefix(ctx context.Context, record T, prefix string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix=? ORDER BY sequence_number DESC LIMIT 1", record.TableName())
-
-	if err := r.store.Sql().GetContext(ctx, record, query, prefix); err != nil {
-		return err
-	}
-
-	return nil
+	return r.get(ctx, record, expressions.Equal("prefix", prefix), orderings.Descending("sequence_number"))
 }
 
 func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, records *[]T, prefix string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix=? ORDER BY sequence_number ASC", (*new(T)).TableName())
-
-	if err := r.store.Sql().SelectContext(ctx, records, query, prefix); err != nil {
-		return err
-	}
-
-	return nil
+	return r._select(ctx, records, expressions.Equal("prefix", prefix), orderings.Ascending("sequence_number"), nil)
 }
 
 func (r VerifiableRepository[T]) get(ctx context.Context, record T, condition data.ClauseOrExpression, order data.Ordering) error {
