@@ -271,6 +271,16 @@ func TestSignableRepository(t *testing.T) {
 		fmt.Printf("%s\n", err)
 		t.FailNow()
 	}
+
+	if record.Nonce == nil {
+		fmt.Printf("unexpected nil nonce\n")
+		t.FailNow()
+	}
+
+	if record.CreatedAt == nil {
+		fmt.Printf("unexpected nil timestamp\n")
+		t.FailNow()
+	}
 }
 
 func createSignableRepository() (repository.Repository[*SignableModel], error) {
