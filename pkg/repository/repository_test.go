@@ -29,7 +29,6 @@ CREATE TABLE IF NOT EXISTS deterministic (
 	prefix				TEXT NOT NULL,
 	previous        	TEXT,
 	sequence_number 	BIGINT NOT NULL,
-	created_at          DATETIME NOT NULL,
 
 	-- Model-specific fields
 	foo 				TEXT NOT NULL,
@@ -118,7 +117,19 @@ func TestDeterministicRepository(t *testing.T) {
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
-		t.Fail()
+		t.FailNow()
+	}
+
+	// if we try and create the same record stream in this deterministic (no nonce or timestamp)
+	// repository, it should fail due to the identical identifiers.
+	record = &DeterministicModel{
+		Foo: "bar",
+		Bar: "baz",
+	}
+
+	if err := repository.CreateVersion(context.Background(), record); err == nil {
+		fmt.Printf("unexpected successful version creation in deterministic repository")
+		t.FailNow()
 	}
 }
 
@@ -139,6 +150,7 @@ func createDeterministicRepository() (repository.Repository[*DeterministicModel]
 	repository := repository.NewVerifiableRepository[*DeterministicModel](
 		store,
 		true,
+		false,
 		nil,
 	)
 
@@ -182,6 +194,7 @@ func createVerifiableRepository() (repository.Repository[*VerifiableModel], erro
 
 	repository := repository.NewVerifiableRepository[*VerifiableModel](
 		store,
+		true,
 		true,
 		noncer,
 	)
@@ -239,6 +252,7 @@ func createSignableRepository() (repository.Repository[*SignableModel], error) {
 
 	repository := repository.NewSignableRepository[*SignableModel](
 		store,
+		true,
 		true,
 		noncer,
 		key,

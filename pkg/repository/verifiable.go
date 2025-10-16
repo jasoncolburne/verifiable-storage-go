@@ -17,25 +17,28 @@ type VerifiableRepository[T primitives.VerifiableAndRecordable] struct {
 	noncer interfaces.Noncer
 
 	// enable writes (disabled for admin dry-run commands for instance)
-	write bool
+	write     bool
+	timestamp bool
 }
 
 // pass a nil noncer to omit nonces
 func NewVerifiableRepository[T primitives.VerifiableAndRecordable](
 	store data.Store,
 	write bool,
+	timestamp bool,
 	noncer interfaces.Noncer,
 ) *VerifiableRepository[T] {
 	return &VerifiableRepository[T]{
 		store:  store,
 		noncer: noncer,
 
-		write: write,
+		write:     write,
+		timestamp: timestamp,
 	}
 }
 
 func (r VerifiableRepository[T]) CreateVersion(ctx context.Context, record T) error {
-	if err := r.prepareVerifiableRecord(record, r.noncer); err != nil {
+	if err := r.prepareVerifiableRecord(record, r.timestamp, r.noncer); err != nil {
 		return err
 	}
 
@@ -88,7 +91,11 @@ func (r VerifiableRepository[T]) ListByPrefix(ctx context.Context, records *[]T,
 
 // helpers
 
-func (r VerifiableRepository[T]) prepareVerifiableRecord(record T, noncer interfaces.Noncer) error {
+func (r VerifiableRepository[T]) prepareVerifiableRecord(
+	record T,
+	timestamp bool,
+	noncer interfaces.Noncer,
+) error {
 	firstRecord := false
 	if strings.EqualFold(record.GetId(), "") {
 		firstRecord = true
@@ -105,7 +112,9 @@ func (r VerifiableRepository[T]) prepareVerifiableRecord(record T, noncer interf
 		}
 	}
 
-	record.StampCreatedAt(nil)
+	if timestamp {
+		record.StampCreatedAt(nil)
+	}
 
 	if firstRecord {
 		if err := algorithms.CreatePrefix(record); err != nil {
@@ -220,7 +229,7 @@ func (r VerifiableRepository[T]) getLeafFieldNamesWithValues(t reflect.Type, v r
 
 		tag := field.Tag.Get("db")
 
-		if strings.Contains(tag, "omitempty") && fieldVal.IsNil() {
+		if strings.HasSuffix(tag, ",omitempty") && fieldVal.IsNil() {
 			continue
 		}
 		if tag == "-" {

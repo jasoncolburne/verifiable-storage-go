@@ -20,6 +20,7 @@ type SignableRepository[T primitives.SignableAndRecordable] struct {
 func NewSignableRepository[T primitives.SignableAndRecordable](
 	store data.Store,
 	write bool,
+	timestamp bool,
 	noncer interfaces.Noncer,
 	signingKey interfaces.SigningKey,
 	verificationKeyStore interfaces.VerificationKeyStore,
@@ -29,7 +30,8 @@ func NewSignableRepository[T primitives.SignableAndRecordable](
 			store:  store,
 			noncer: noncer,
 
-			write: write,
+			write:     write,
+			timestamp: timestamp,
 		},
 
 		signingKey:           signingKey,
@@ -38,7 +40,7 @@ func NewSignableRepository[T primitives.SignableAndRecordable](
 }
 
 func (r SignableRepository[T]) CreateVersion(ctx context.Context, record T) error {
-	if err := r.prepareSignedRecord(record, r.noncer, r.signingKey); err != nil {
+	if err := r.prepareSignedRecord(record, r.timestamp, r.noncer, r.signingKey); err != nil {
 		return err
 	}
 
@@ -91,9 +93,14 @@ func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, p
 
 // helpers
 
-func (r SignableRepository[T]) prepareSignedRecord(record T, noncer interfaces.Noncer, key interfaces.SigningKey) error {
+func (r SignableRepository[T]) prepareSignedRecord(
+	record T,
+	timestamp bool,
+	noncer interfaces.Noncer,
+	key interfaces.SigningKey,
+) error {
 	if err := algorithms.Sign(record, key, func() error {
-		return r.prepareVerifiableRecord(record, noncer)
+		return r.prepareVerifiableRecord(record, timestamp, noncer)
 	}); err != nil {
 		return err
 	}
