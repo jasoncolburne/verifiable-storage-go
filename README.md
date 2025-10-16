@@ -28,7 +28,8 @@ generic APIs exist (`Get()`, `Select()`, and `ListLatestByPrefix()`)
 
 ### ListLatestByPrefix()
 
-ListLatestByPrefix deserves some discussion. It permits this kind of thing:
+`ListLatestByPrefix()` deserves some discussion. It returns at most one record per prefix (the
+latest), permitting this kind of thing:
 
 ```go
 accountRecord := &AccountRecord{
@@ -61,7 +62,6 @@ r.ListLatestByPrefix(
 // you'd have all the old versions of `accountRecord` which were marked active.
 
 ```
-
 
 ## Concepts
 
