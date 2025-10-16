@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"slices"
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
 	"github.com/jmoiron/sqlx"
@@ -23,7 +22,7 @@ func NewInMemorySQLiteStore() (*SQLiteStore, error) {
 	}
 
 	return &SQLiteStore{
-		db: db,
+		db: db.Unsafe(), // the unsafe here allows us to gracefully ignore computed columns
 		tx: nil,
 	}, nil
 }
@@ -34,11 +33,6 @@ func (s SQLiteStore) Sql() data.SQLStore {
 	} else {
 		return s.tx
 	}
-}
-
-func (SQLiteStore) Placeholders(count int) []string {
-	// for postgres you'd need to increment a counter: [$1, $2, ...]
-	return slices.Repeat([]string{"?"}, count)
 }
 
 func (s *SQLiteStore) BeginTransaction(ctx context.Context, opts *sql.TxOptions) error {

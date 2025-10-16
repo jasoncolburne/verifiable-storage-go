@@ -23,7 +23,45 @@ The typical pattern then, is:
 2. Modify data
 3. `CreateVersion()`
 
-That said, a couple other APIs are supported (`GetById()` and `ListByPrefix()`).
+That said, a few other direct APIs are supported (`GetById()` and `ListByPrefix()`), and some
+generic APIs exist (`Get()`, `Select()`, and `ListLatestByPrefix()`)
+
+ListLatestByPrefix deserves some discussion. It permits this kind of thing:
+
+
+
+```go
+accountRecord := &AccountRecord{
+    ...
+    Active: true,
+}
+r.CreateVersion(accountRecord)
+
+// later on...
+
+accountRecord.Active = false
+r.CreateVersion(accountRecord)
+
+// the problem is that after this point, if you did a regular select for active accounts, you'd get
+// versions of the record that were labeled as active, when really the most recent version has
+// rendered it inactive.
+
+// the below method accomodates this by first filtering down to the most recent records in sequences
+// only, using prefix as a partitioning field. then, the supplied conditions are applied.
+
+r.ListLatestByPrefix(
+    ctx,
+    &records, 
+    expressions.Equal("active", true),
+    nil,
+    nil
+)
+
+// records will not contain any versions of `accountRecord`. if you had performed a regular select,
+// you'd have all the old versions of `accountRecord` which were marked active.
+
+```
+
 
 ## Concepts
 

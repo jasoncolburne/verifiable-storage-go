@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	data "github.com/jasoncolburne/verifiable-storage-go/pkg/data/examples"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/expressions"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/orderings"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces/examples"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/repository"
@@ -445,6 +447,70 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 				return fmt.Errorf("listed record 2 has incorrect id")
 			}
 		}
+	}
+
+	moreRecords := []T{}
+
+	if err := repository.ListLatestByPrefix(ctx, &moreRecords, expressions.Equal("foo", "bar"), nil, nil); err != nil {
+		return err
+	}
+
+	if len(moreRecords) != 1 {
+		return fmt.Errorf("unexpected number or records returned: %d != %d", len(moreRecords), 1)
+	}
+
+	evenMoreRecords := []T{}
+
+	if err := repository.Select(ctx, &evenMoreRecords, expressions.Equal("foo", "bar"), orderings.Ascending("sequence_number"), nil); err != nil {
+		return err
+	}
+
+	if len(evenMoreRecords) != 3 {
+		return fmt.Errorf("unexpected number or records returned: %d != %d", len(evenMoreRecords), 3)
+	}
+
+	reversedEvenMoreRecords := []T{}
+
+	if err := repository.Select(ctx, &reversedEvenMoreRecords, expressions.Equal("foo", "bar"), orderings.Descending("sequence_number"), nil); err != nil {
+		return err
+	}
+
+	if len(evenMoreRecords) != 3 {
+		return fmt.Errorf("unexpected number or records returned: %d != %d", len(evenMoreRecords), 3)
+	}
+
+	if !strings.EqualFold(evenMoreRecords[0].GetId(), reversedEvenMoreRecords[2].GetId()) {
+		return fmt.Errorf("mismatched ids for reversed select")
+	}
+
+	if !strings.EqualFold(evenMoreRecords[1].GetId(), reversedEvenMoreRecords[1].GetId()) {
+		return fmt.Errorf("mismatched ids for reversed select")
+	}
+
+	if !strings.EqualFold(evenMoreRecords[2].GetId(), reversedEvenMoreRecords[0].GetId()) {
+		return fmt.Errorf("mismatched ids for reversed select")
+	}
+
+	noRecords := []T{}
+
+	if err := repository.ListLatestByPrefix(ctx, &noRecords, expressions.Equal("foo", "foo"), nil, nil); err != nil {
+		return err
+	}
+
+	if len(noRecords) != 0 {
+		return fmt.Errorf("unexpected number of record returned: %d != %d", len(noRecords), 1)
+	}
+
+	if err := repository.Select(ctx, &noRecords, expressions.Equal("foo", "foo"), nil, nil); err != nil {
+		return err
+	}
+
+	if len(noRecords) != 0 {
+		return fmt.Errorf("unexpected number of record returned: %d != %d", len(noRecords), 1)
+	}
+
+	if err := repository.Get(ctx, record2, expressions.Equal("foo", "foo"), nil); err == nil {
+		return fmt.Errorf("expected an error for get with no results")
 	}
 
 	return nil

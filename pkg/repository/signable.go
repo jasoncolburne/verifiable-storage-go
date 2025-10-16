@@ -91,6 +91,63 @@ func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, p
 	return nil
 }
 
+func (r SignableRepository[T]) Get(
+	ctx context.Context,
+	record T,
+	condition data.ClauseOrExpression,
+	order data.Ordering,
+) error {
+	if err := r.get(ctx, record, condition, order); err != nil {
+		return err
+	}
+
+	if err := r.verifySignedRecord(record); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r SignableRepository[T]) Select(
+	ctx context.Context,
+	records *[]T,
+	condition data.ClauseOrExpression,
+	order data.Ordering,
+	limit *uint,
+) error {
+	if err := r._select(ctx, records, condition, order, limit); err != nil {
+		return err
+	}
+
+	for _, record := range *records {
+		if err := r.verifySignedRecord(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r SignableRepository[T]) ListLatestByPrefix(
+	ctx context.Context,
+	records *[]T,
+	condition data.ClauseOrExpression,
+	order data.Ordering,
+	limit *uint,
+) error {
+	if err := r.selectLatestByPrefix(ctx, records, condition, order, limit); err != nil {
+		return err
+	}
+
+	for _, record := range *records {
+		if err := r.verifySignedRecord(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // helpers
 
 func (r SignableRepository[T]) prepareSignedRecord(record T) error {
