@@ -214,7 +214,17 @@ func TestVerifiableRepository(t *testing.T) {
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
-		t.Fail()
+		t.FailNow()
+	}
+
+	if record.Nonce == nil {
+		fmt.Printf("unexpected nil nonce\n")
+		t.FailNow()
+	}
+
+	if record.CreatedAt == nil {
+		fmt.Printf("unexpected nil nonce\n")
+		t.FailNow()
 	}
 }
 
@@ -259,7 +269,7 @@ func TestSignableRepository(t *testing.T) {
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
-		t.Fail()
+		t.FailNow()
 	}
 }
 
