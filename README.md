@@ -41,6 +41,9 @@ number).
 
 ### Optional
 
+In the implementation, repositories come in only two flavours (verifiable and signed). These two
+types can (and most often should) be configured with optional nonces and timestamps.
+
 - **Nonces**: A record may contain a nonce to add uniqueness. In some cases this may be undesirable,
 but for the majority of cases this is what you need. If you want more determinism (duplicate
 prevention for instance) you can supply a nil noncer to the repository creation method and the field
