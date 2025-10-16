@@ -32,18 +32,19 @@ generic APIs exist (`Get()`, `Select()`, and `ListLatestByPrefix()`)
 latest), permitting this kind of thing:
 
 ```go
-accountRecord := &AccountRecord{
+record := &Record{
     ...
+    AccountId: accountId,
     Active: true,
 }
-r.CreateVersion(accountRecord)
+r.CreateVersion(record)
 
 // later on...
 
-accountRecord.Active = false
-r.CreateVersion(accountRecord)
+record.Active = false
+r.CreateVersion(record)
 
-// the problem is that after this point, if you did a regular select for active accounts, you'd get
+// the problem is that after this point, if you did a regular select for active records, you'd get
 // versions of the record that were labeled as active, when really the most recent version has
 // rendered it inactive.
 
@@ -64,8 +65,8 @@ r.ListLatestByPrefix(
     nil
 )
 
-// records will not contain any versions of `accountRecord`. if you had performed a regular select,
-// you'd have all the old versions of `accountRecord` which were marked active.
+// records will not contain any versions of `record`. if you had performed a regular select,
+// you'd have all the old versions of `record` which were marked active.
 
 ```
 
