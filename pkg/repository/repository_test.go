@@ -223,7 +223,7 @@ func TestVerifiableRepository(t *testing.T) {
 	}
 
 	if record.CreatedAt == nil {
-		fmt.Printf("unexpected nil nonce\n")
+		fmt.Printf("unexpected nil timestamp\n")
 		t.FailNow()
 	}
 }
