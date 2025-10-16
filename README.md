@@ -32,34 +32,41 @@ generic APIs exist (`Get()`, `Select()`, and `ListLatestByPrefix()`)
 latest), permitting this kind of thing:
 
 ```go
-accountRecord := &AccountRecord{
+record := &Record{
     ...
+    AccountId: accountId,
     Active: true,
 }
-r.CreateVersion(accountRecord)
+r.CreateVersion(record)
 
 // later on...
 
-accountRecord.Active = false
-r.CreateVersion(accountRecord)
+record.Active = false
+r.CreateVersion(record)
 
-// the problem is that after this point, if you did a regular select for active accounts, you'd get
+// the problem is that after this point, if you did a regular select for active records, you'd get
 // versions of the record that were labeled as active, when really the most recent version has
 // rendered it inactive.
 
-// the below method accomodates this by first filtering down to the most recent records in sequences
-// only, using prefix as a partitioning field. then, the supplied conditions are applied.
+// the below method accomodates this by:
+// 1. filtering the table with the pre-filter (good for selecting all data for an account)
+// 2. reducing that result to only the latest records in each sequence
+// 3. filtering that result set with the condition
+
+// it's important to understand this, since putting the wrong filter in the wrong place
+// will yield totally different results and could ruin performance
 
 r.ListLatestByPrefix(
     ctx,
     &records, 
+    expressions.Equal("account_id", accountId),
     expressions.Equal("active", true),
     nil,
     nil
 )
 
-// records will not contain any versions of `accountRecord`. if you had performed a regular select,
-// you'd have all the old versions of `accountRecord` which were marked active.
+// records will not contain any versions of `record`. if you had performed a regular select,
+// you'd have all the old versions of `record` which were marked active.
 
 ```
 

@@ -131,11 +131,12 @@ func (r SignableRepository[T]) Select(
 func (r SignableRepository[T]) ListLatestByPrefix(
 	ctx context.Context,
 	records *[]T,
+	preFilter data.ClauseOrExpression,
 	condition data.ClauseOrExpression,
 	order data.Ordering,
 	limit *uint,
 ) error {
-	if err := r.selectLatestByPrefix(ctx, records, condition, order, limit); err != nil {
+	if err := r.selectLatestByPrefix(ctx, records, preFilter, condition, order, limit); err != nil {
 		return err
 	}
 

@@ -31,6 +31,7 @@ type Repository[T primitives.VerifiableAndRecordable] interface {
 	ListLatestByPrefix(
 		ctx context.Context,
 		records *[]T,
+		preFilter data.ClauseOrExpression,
 		condition data.ClauseOrExpression,
 		order data.Ordering,
 		limit *uint,
