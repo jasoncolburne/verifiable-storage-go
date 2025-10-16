@@ -19,6 +19,8 @@ type VerifiableRepository[T primitives.VerifiableAndRecordable] struct {
 	// enable writes (disabled for admin dry-run commands for instance)
 	write     bool
 	timestamp bool
+
+	fieldNames *[]string
 }
 
 // pass a nil noncer to omit nonces
@@ -194,9 +196,14 @@ func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, record
 // sql helper helpers
 
 func (r VerifiableRepository[T]) getFieldNames(s T) (fields []string) {
-	val := reflect.ValueOf(s)
-	typ := val.Type()
-	return r.getLeafFieldNamesWithValues(typ, val)
+	if r.fieldNames == nil {
+		val := reflect.ValueOf(s)
+		typ := val.Type()
+		fieldNames := r.getLeafFieldNamesWithValues(typ, val)
+		r.fieldNames = &fieldNames
+	}
+
+	return *r.fieldNames
 }
 
 func (r VerifiableRepository[T]) getLeafFieldNamesWithValues(t reflect.Type, v reflect.Value) []string {
