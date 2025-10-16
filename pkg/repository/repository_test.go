@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -131,6 +132,44 @@ func TestDeterministicRepository(t *testing.T) {
 
 	if err := repository.CreateVersion(context.Background(), record); err == nil {
 		fmt.Printf("unexpected successful version creation in deterministic repository")
+		t.FailNow()
+	}
+
+	// now let's verify this data sequence remains the same for all time:
+	record = &DeterministicModel{
+		Foo: "constant",
+		Bar: "unchanging",
+	}
+
+	if err := repository.CreateVersion(context.Background(), record); err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	jsonString, err := json.Marshal(record)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	if !strings.EqualFold(string(jsonString), `{"id":"EArKTlOlXEAlaO4m3I1punbhd6M0QV30G2aGuS0FWdiB","prefix":"EArKTlOlXEAlaO4m3I1punbhd6M0QV30G2aGuS0FWdiB","sequenceNumber":0,"foo":"constant","bar":"unchanging"}`) {
+		fmt.Printf("unexpected deterministic record 0: %s", jsonString)
+		t.FailNow()
+	}
+
+	if err := repository.CreateVersion(context.Background(), record); err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	jsonString, err = json.Marshal(record)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	if !strings.EqualFold(string(jsonString), `{"id":"EEaPNbai38tmx5pY04T5oDt-QwNu1CBZW7gOGOzQM0D2","prefix":"EArKTlOlXEAlaO4m3I1punbhd6M0QV30G2aGuS0FWdiB","sequenceNumber":1,"previous":"EArKTlOlXEAlaO4m3I1punbhd6M0QV30G2aGuS0FWdiB","foo":"constant","bar":"unchanging"}`) {
+		fmt.Printf("unexpected deterministic record 1: %s", jsonString)
 		t.FailNow()
 	}
 }
