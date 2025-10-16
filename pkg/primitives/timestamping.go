@@ -7,9 +7,28 @@ import (
 	"time"
 )
 
-const ConsistentNano = `2006-01-02T15:04:05.000000000Z07:00`
-
 type Timestamp time.Time
+
+type Timestampable interface {
+	// if when is null, Now() is used
+	StampCreatedAt(when *Timestamp)
+}
+
+type Timestamper struct {
+	CreatedAt *Timestamp `db:"created_at,omitempty" json:"createdAt,omitempty"`
+}
+
+func (t *Timestamper) StampCreatedAt(when *Timestamp) {
+	if when == nil {
+		now := time.Now()
+		when = (*Timestamp)(&now)
+	}
+
+	utc := when.UTC()
+	t.CreatedAt = &utc
+}
+
+const ConsistentNano = `2006-01-02T15:04:05.000000000Z07:00`
 
 func (t Timestamp) UTC() Timestamp {
 	utc := (time.Time(t)).UTC()
@@ -73,22 +92,4 @@ func (t *Timestamp) Scan(src any) error {
 	default:
 		return fmt.Errorf("unsupported src type %T", src)
 	}
-}
-
-type Timestampable interface {
-	// if when is null, Now() is used
-	StampCreatedAt(when *Timestamp)
-}
-
-type Timestamper struct {
-	CreatedAt Timestamp `db:"created_at" json:"createdAt"`
-}
-
-func (t *Timestamper) StampCreatedAt(when *Timestamp) {
-	if when == nil {
-		now := time.Now()
-		when = (*Timestamp)(&now)
-	}
-
-	t.CreatedAt = when.UTC()
 }

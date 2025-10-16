@@ -29,10 +29,6 @@ That said, a couple other APIs are supported (`GetById()` and `ListByPrefix()`).
 
 - **Chains**: Like a blockchain, each record (other than the first) points to the previous record
 with a hash commitment.
-- **Nonces**: Each record contains a nonce to add uniqueness. In some cases this may be undesirable,
-but for the majority of cases this is what you need. If you want more determinism (duplicate
-prevention for instance) you can supply a nil noncer to the repository creation method and the field
-will be omitted.
 - **Prefixes**: A self-address derived during creation of the first record in a chain. This value is
 both the id and the prefix of that record, and it is the prefix of future records in the chain.
 - **Self-Addresses**: A self-address is an id (named `id`) embedded in the data itself that is derived
@@ -42,12 +38,24 @@ verification fails.
 coupled with a unique constraint, provides a very good solution to divergence prevention (two
 writes to the same chain of data based on the same record - both would have the same sequence
 number).
-- **Timestamping**: Each record is timestamped.
 
 ### Optional
 
+In the implementation, repositories come in only two flavours (verifiable and signed). These two
+types can (and most often should) be configured with optional nonces and timestamps.
+
+- **Nonces**: A record may contain a nonce to add uniqueness. In some cases this may be undesirable,
+but for the majority of cases this is what you need. If you want more determinism (duplicate
+prevention for instance) you can supply a nil noncer to the repository creation method and the field
+will be omitted. Be sure to disable both nonces and timestamping for true determinism.
+- **Timestamping**: Each record may be timestamped. If you want determinism and can tolerate the
+lack of a timestamp, disable this and nonces.
 - **Signing**: Records can be signed and when they are, two fields are added. One for the signature
 itself, and the other to identify the signer.
+
+It's worth noting that you'll still have a `CreatedAt` and `Nonce` field on the struct you're using
+even if you disable them (as pointers). Just don't assign them, the code omits them from writes
+and computations if they aren't set.
 
 ## Verification
 

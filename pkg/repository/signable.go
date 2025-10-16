@@ -20,6 +20,7 @@ type SignableRepository[T primitives.SignableAndRecordable] struct {
 func NewSignableRepository[T primitives.SignableAndRecordable](
 	store data.Store,
 	write bool,
+	timestamp bool,
 	noncer interfaces.Noncer,
 	signingKey interfaces.SigningKey,
 	verificationKeyStore interfaces.VerificationKeyStore,
@@ -29,7 +30,8 @@ func NewSignableRepository[T primitives.SignableAndRecordable](
 			store:  store,
 			noncer: noncer,
 
-			write: write,
+			write:     write,
+			timestamp: timestamp,
 		},
 
 		signingKey:           signingKey,
@@ -38,7 +40,7 @@ func NewSignableRepository[T primitives.SignableAndRecordable](
 }
 
 func (r SignableRepository[T]) CreateVersion(ctx context.Context, record T) error {
-	if err := r.prepareSignedRecord(record, r.noncer, r.signingKey); err != nil {
+	if err := r.prepareSignedRecord(record); err != nil {
 		return err
 	}
 
@@ -56,7 +58,7 @@ func (r SignableRepository[T]) GetById(ctx context.Context, record T, id string)
 		return err
 	}
 
-	if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+	if err := r.verifySignedRecord(record); err != nil {
 		return err
 	}
 
@@ -68,7 +70,7 @@ func (r SignableRepository[T]) GetLatestByPrefix(ctx context.Context, record T, 
 		return err
 	}
 
-	if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+	if err := r.verifySignedRecord(record); err != nil {
 		return err
 	}
 
@@ -81,7 +83,7 @@ func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, p
 	}
 
 	for _, record := range *records {
-		if err := r.verifySignedRecord(record, r.verificationKeyStore); err != nil {
+		if err := r.verifySignedRecord(record); err != nil {
 			return err
 		}
 	}
@@ -91,9 +93,9 @@ func (r SignableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, p
 
 // helpers
 
-func (r SignableRepository[T]) prepareSignedRecord(record T, noncer interfaces.Noncer, key interfaces.SigningKey) error {
-	if err := algorithms.Sign(record, key, func() error {
-		return r.prepareVerifiableRecord(record, noncer)
+func (r SignableRepository[T]) prepareSignedRecord(record T) error {
+	if err := algorithms.Sign(record, r.signingKey, func() error {
+		return r.prepareVerifiableRecord(record)
 	}); err != nil {
 		return err
 	}
@@ -101,8 +103,8 @@ func (r SignableRepository[T]) prepareSignedRecord(record T, noncer interfaces.N
 	return nil
 }
 
-func (r SignableRepository[T]) verifySignedRecord(record T, verificationKeyStore interfaces.VerificationKeyStore) error {
-	if err := algorithms.VerifySignature(record, verificationKeyStore); err != nil {
+func (r SignableRepository[T]) verifySignedRecord(record T) error {
+	if err := algorithms.VerifySignature(record, r.verificationKeyStore); err != nil {
 		return err
 	}
 

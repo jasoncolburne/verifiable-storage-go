@@ -2,6 +2,7 @@ package repository_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -29,7 +30,6 @@ CREATE TABLE IF NOT EXISTS deterministic (
 	prefix				TEXT NOT NULL,
 	previous        	TEXT,
 	sequence_number 	BIGINT NOT NULL,
-	created_at          DATETIME NOT NULL,
 
 	-- Model-specific fields
 	foo 				TEXT NOT NULL,
@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS verifiable (
 	prefix				TEXT NOT NULL,
 	previous        	TEXT,
 	sequence_number 	BIGINT NOT NULL,
+
+	-- Optional fields
 	created_at          DATETIME NOT NULL,
 	nonce           	TEXT NOT NULL,
 
@@ -86,10 +88,10 @@ CREATE TABLE IF NOT EXISTS signable (
 	prefix				TEXT NOT NULL,
 	previous        	TEXT,
 	sequence_number 	BIGINT NOT NULL,
+
+	-- Optional fields
 	created_at          DATETIME NOT NULL,
 	nonce           	TEXT NOT NULL,
-
-	-- Signable fields
 	signing_identity	TEXT NOT NULL,
 	signature       	TEXT NOT NULL,
 
@@ -118,7 +120,57 @@ func TestDeterministicRepository(t *testing.T) {
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
-		t.Fail()
+		t.FailNow()
+	}
+
+	// if we try and create the same record stream in this deterministic (no nonce or timestamp)
+	// repository, it should fail due to the identical identifiers.
+	record = &DeterministicModel{
+		Foo: "bar",
+		Bar: "baz",
+	}
+
+	if err := repository.CreateVersion(context.Background(), record); err == nil {
+		fmt.Printf("unexpected successful version creation in deterministic repository")
+		t.FailNow()
+	}
+
+	// now let's verify this data sequence remains the same for all time:
+	record = &DeterministicModel{
+		Foo: "constant",
+		Bar: "unchanging",
+	}
+
+	if err := repository.CreateVersion(context.Background(), record); err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	jsonString, err := json.Marshal(record)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	if !strings.EqualFold(string(jsonString), `{"id":"EArKTlOlXEAlaO4m3I1punbhd6M0QV30G2aGuS0FWdiB","prefix":"EArKTlOlXEAlaO4m3I1punbhd6M0QV30G2aGuS0FWdiB","sequenceNumber":0,"foo":"constant","bar":"unchanging"}`) {
+		fmt.Printf("unexpected deterministic record 0: %s", jsonString)
+		t.FailNow()
+	}
+
+	if err := repository.CreateVersion(context.Background(), record); err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	jsonString, err = json.Marshal(record)
+	if err != nil {
+		fmt.Printf("%s\n", err)
+		t.FailNow()
+	}
+
+	if !strings.EqualFold(string(jsonString), `{"id":"EEaPNbai38tmx5pY04T5oDt-QwNu1CBZW7gOGOzQM0D2","prefix":"EArKTlOlXEAlaO4m3I1punbhd6M0QV30G2aGuS0FWdiB","sequenceNumber":1,"previous":"EArKTlOlXEAlaO4m3I1punbhd6M0QV30G2aGuS0FWdiB","foo":"constant","bar":"unchanging"}`) {
+		fmt.Printf("unexpected deterministic record 1: %s", jsonString)
+		t.FailNow()
 	}
 }
 
@@ -139,7 +191,8 @@ func createDeterministicRepository() (repository.Repository[*DeterministicModel]
 	repository := repository.NewVerifiableRepository[*DeterministicModel](
 		store,
 		true,
-		nil,
+		false, // important for determinism
+		nil,   // important for determinism
 	)
 
 	return repository, nil
@@ -161,7 +214,17 @@ func TestVerifiableRepository(t *testing.T) {
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
-		t.Fail()
+		t.FailNow()
+	}
+
+	if record.Nonce == nil {
+		fmt.Printf("unexpected nil nonce\n")
+		t.FailNow()
+	}
+
+	if record.CreatedAt == nil {
+		fmt.Printf("unexpected nil timestamp\n")
+		t.FailNow()
 	}
 }
 
@@ -182,6 +245,7 @@ func createVerifiableRepository() (repository.Repository[*VerifiableModel], erro
 
 	repository := repository.NewVerifiableRepository[*VerifiableModel](
 		store,
+		true,
 		true,
 		noncer,
 	)
@@ -205,7 +269,17 @@ func TestSignableRepository(t *testing.T) {
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
-		t.Fail()
+		t.FailNow()
+	}
+
+	if record.Nonce == nil {
+		fmt.Printf("unexpected nil nonce\n")
+		t.FailNow()
+	}
+
+	if record.CreatedAt == nil {
+		fmt.Printf("unexpected nil timestamp\n")
+		t.FailNow()
 	}
 }
 
@@ -239,6 +313,7 @@ func createSignableRepository() (repository.Repository[*SignableModel], error) {
 
 	repository := repository.NewSignableRepository[*SignableModel](
 		store,
+		true,
 		true,
 		noncer,
 		key,
