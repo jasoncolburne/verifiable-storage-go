@@ -22,7 +22,7 @@ func NewInMemorySQLiteStore() (*SQLiteStore, error) {
 	}
 
 	return &SQLiteStore{
-		db: db,
+		db: db.Unsafe(), // the unsafe here allows us to gracefully ignore computed columns
 		tx: nil,
 	}, nil
 }
@@ -33,10 +33,6 @@ func (s SQLiteStore) Sql() data.SQLStore {
 	} else {
 		return s.tx
 	}
-}
-
-func (SQLiteStore) Placeholder() string {
-	return `?`
 }
 
 func (s *SQLiteStore) BeginTransaction(ctx context.Context, opts *sql.TxOptions) error {

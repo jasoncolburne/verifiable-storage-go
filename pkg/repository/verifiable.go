@@ -8,6 +8,8 @@ import (
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/algorithms"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/expressions"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/orderings"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/primitives"
 )
@@ -77,6 +79,63 @@ func (r VerifiableRepository[T]) GetLatestByPrefix(ctx context.Context, record T
 
 func (r VerifiableRepository[T]) ListByPrefix(ctx context.Context, records *[]T, prefix string) error {
 	if err := r.listRecordsByPrefix(ctx, records, prefix); err != nil {
+		return err
+	}
+
+	for _, record := range *records {
+		if err := r.verifyRecord(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r VerifiableRepository[T]) Get(
+	ctx context.Context,
+	record T,
+	condition data.ClauseOrExpression,
+	order data.Ordering,
+) error {
+	if err := r.get(ctx, record, condition, order); err != nil {
+		return err
+	}
+
+	if err := r.verifyRecord(record); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r VerifiableRepository[T]) Select(
+	ctx context.Context,
+	records *[]T,
+	condition data.ClauseOrExpression,
+	order data.Ordering,
+	limit *uint,
+) error {
+	if err := r._select(ctx, records, condition, order, limit); err != nil {
+		return err
+	}
+
+	for _, record := range *records {
+		if err := r.verifyRecord(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r VerifiableRepository[T]) ListLatestByPrefix(
+	ctx context.Context,
+	records *[]T,
+	condition data.ClauseOrExpression,
+	order data.Ordering,
+	limit *uint,
+) error {
+	if err := r.selectLatestByPrefix(ctx, records, condition, order, limit); err != nil {
 		return err
 	}
 
@@ -162,29 +221,87 @@ func (r VerifiableRepository[T]) insertRecord(ctx context.Context, record T) err
 }
 
 func (r VerifiableRepository[T]) getRecordById(ctx context.Context, record T, id string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE id = %s", record.TableName(), r.store.Placeholder())
-
-	if err := r.store.Sql().GetContext(ctx, record, query, id); err != nil {
-		return err
-	}
-
-	return nil
+	return r.get(ctx, record, expressions.Equal("id", id), nil)
 }
 
 func (r VerifiableRepository[T]) getLatestRecordByPrefix(ctx context.Context, record T, prefix string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix = %s ORDER BY sequence_number DESC LIMIT 1", record.TableName(), r.store.Placeholder())
+	return r.get(ctx, record, expressions.Equal("prefix", prefix), orderings.Descending("sequence_number"))
+}
 
-	if err := r.store.Sql().GetContext(ctx, record, query, prefix); err != nil {
+func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, records *[]T, prefix string) error {
+	return r._select(ctx, records, expressions.Equal("prefix", prefix), orderings.Ascending("sequence_number"), nil)
+}
+
+func (r VerifiableRepository[T]) get(ctx context.Context, record T, condition data.ClauseOrExpression, order data.Ordering) error {
+	query := fmt.Sprintf("SELECT * FROM %s WHERE %s", (*new(T)).TableName(), condition.String())
+
+	if order != nil {
+		query += fmt.Sprintf(" %s", order.String())
+	}
+
+	query += " LIMIT 1"
+
+	if err := r.store.Sql().GetContext(ctx, record, query, condition.Values()...); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r VerifiableRepository[T]) listRecordsByPrefix(ctx context.Context, records *[]T, prefix string) error {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE prefix = %s ORDER BY sequence_number ASC", (*new(T)).TableName(), r.store.Placeholder())
+func (r VerifiableRepository[T]) _select(
+	ctx context.Context,
+	records *[]T,
+	condition data.ClauseOrExpression,
+	order data.Ordering,
+	limit *uint,
+) error {
+	query := fmt.Sprintf("SELECT * FROM %s WHERE %s", (*new(T)).TableName(), condition.String())
 
-	if err := r.store.Sql().SelectContext(ctx, records, query, prefix); err != nil {
+	return r.selectCore(ctx, records, query, condition.Values(), order, limit)
+}
+
+func (r VerifiableRepository[T]) selectLatestByPrefix(
+	ctx context.Context,
+	records *[]T,
+	condition data.ClauseOrExpression,
+	order data.Ordering,
+	limit *uint,
+) error {
+	query := fmt.Sprintf(
+		`WITH sequentialranks AS (
+			SELECT
+				ROW_NUMBER() OVER (PARTITION BY prefix ORDER BY sequence_number DESC) AS _rank,
+				*
+			FROM %s
+		)
+		SELECT *
+		FROM sequentialranks
+		WHERE _rank=1 AND %s
+		`,
+		(*new(T)).TableName(),
+		condition.String(),
+	)
+
+	return r.selectCore(ctx, records, query, condition.Values(), order, limit)
+}
+
+func (r VerifiableRepository[T]) selectCore(
+	ctx context.Context,
+	records *[]T,
+	query string,
+	values []any,
+	order data.Ordering,
+	limit *uint,
+) error {
+	if order != nil {
+		query += fmt.Sprintf(" %s", order.String())
+	}
+
+	if limit != nil {
+		query += fmt.Sprintf(" LIMIT %d", *limit)
+	}
+
+	if err := r.store.Sql().SelectContext(ctx, records, query, values...); err != nil {
 		return err
 	}
 
