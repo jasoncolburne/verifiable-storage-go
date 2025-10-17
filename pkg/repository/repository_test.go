@@ -475,7 +475,7 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 		return err
 	}
 
-	if len(evenMoreRecords) != 3 {
+	if len(reversedEvenMoreRecords) != 3 {
 		return fmt.Errorf("unexpected number or records returned: %d != %d", len(evenMoreRecords), 3)
 	}
 
@@ -498,7 +498,7 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 	}
 
 	if len(noRecords) != 0 {
-		return fmt.Errorf("unexpected number of record returned: %d != %d", len(noRecords), 1)
+		return fmt.Errorf("unexpected number of record returned: %d != %d", len(noRecords), 0)
 	}
 
 	if err := repository.Select(ctx, &noRecords, expressions.Equal("foo", "foo"), nil, nil); err != nil {
@@ -506,7 +506,7 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 	}
 
 	if len(noRecords) != 0 {
-		return fmt.Errorf("unexpected number of record returned: %d != %d", len(noRecords), 1)
+		return fmt.Errorf("unexpected number of record returned: %d != %d", len(noRecords), 0)
 	}
 
 	if err := repository.Get(ctx, record2, expressions.Equal("foo", "foo"), nil); err == nil {
