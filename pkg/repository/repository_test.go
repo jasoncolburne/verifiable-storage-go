@@ -118,7 +118,7 @@ func TestDeterministicRepository(t *testing.T) {
 		Bar: "baz",
 	}
 
-	buffers := []*DeterministicModel{{}, {}, {}}
+	buffers := []*DeterministicModel{{}, {}, {}, {}}
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
@@ -212,7 +212,7 @@ func TestVerifiableRepository(t *testing.T) {
 		Bar: "baz",
 	}
 
-	buffers := []*VerifiableModel{{}, {}, {}}
+	buffers := []*VerifiableModel{{}, {}, {}, {}}
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
@@ -267,7 +267,7 @@ func TestSignableRepository(t *testing.T) {
 		Bar: "baz",
 	}
 
-	buffers := []*SignableModel{{}, {}, {}}
+	buffers := []*SignableModel{{}, {}, {}, {}}
 
 	if err := exerciseRepository(repository, record, buffers); err != nil {
 		fmt.Printf("%s\n", err)
@@ -528,6 +528,16 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 
 	if len(twoRecords) != 2 {
 		return fmt.Errorf("unexpected number of records returned: %d != %d", len(twoRecords), 2)
+	}
+
+	reloaded2 := buffers[3]
+
+	if err := repository.GetBySequenceNumber(ctx, reloaded2, record0.GetPrefix(), 2); err != nil {
+		return err
+	}
+
+	if !strings.EqualFold(record2.GetId(), reloaded2.GetId()) {
+		return fmt.Errorf("reloaded record 2 not equal to record 2")
 	}
 
 	return nil

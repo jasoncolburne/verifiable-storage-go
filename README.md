@@ -23,8 +23,9 @@ The typical pattern then, is:
 2. Modify data
 3. `CreateVersion()`
 
-That said, a few other direct APIs are supported (`GetById()` and `ListByPrefix()`), and some
-generic APIs exist (`Get()`, `Select()`, and `ListLatestByPrefix()`)
+That said, a few other direct APIs are supported (`GetById()`, `GetBySequenceNumber()` and
+`ListByPrefix()`), and some generic APIs exist (`Get()`, `Select()`, and `ListLatestByPrefix()`).
+The generic apis accept clauses of expressions that control the query.
 
 ### ListLatestByPrefix()
 
@@ -106,3 +107,63 @@ and computations if they aren't set.
 
 As data is read from a repository, it is verified for id/data validity, and if signed, the
 signature is also verified.
+
+## API
+
+As can be seen in `pkg/repository/interface.go`:
+
+```go
+CreateVersion(
+    ctx context.Context,
+    record T,
+) error
+
+GetById(
+    ctx context.Context,
+    record T,
+    id string,
+) error
+
+GetBySequenceNumber(
+    ctx context.Context,
+    record T,
+    prefix string,
+    sequenceNumber uint,
+) error
+
+GetLatestByPrefix(
+    ctx context.Context,
+    record T,
+    prefix string,
+) error
+
+ListByPrefix(
+    ctx context.Context,
+    records *[]T,
+    prefix string,
+) error
+
+Get(
+    ctx context.Context,
+    record T,
+    condition data.ClauseOrExpression,
+    order data.Ordering,
+) error
+
+Select(
+    ctx context.Context,
+    records *[]T,
+    condition data.ClauseOrExpression,
+    order data.Ordering,
+    limit *uint,
+) error
+
+ListLatestByPrefix(
+    ctx context.Context,
+    records *[]T,
+    preFilter data.ClauseOrExpression,
+    condition data.ClauseOrExpression,
+    order data.Ordering,
+    limit *uint,
+) error
+```
