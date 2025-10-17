@@ -475,7 +475,7 @@ func exerciseRepository[T primitives.VerifiableAndRecordable](repository reposit
 		return err
 	}
 
-	if len(evenMoreRecords) != 3 {
+	if len(reversedEvenMoreRecords) != 3 {
 		return fmt.Errorf("unexpected number or records returned: %d != %d", len(evenMoreRecords), 3)
 	}
 
