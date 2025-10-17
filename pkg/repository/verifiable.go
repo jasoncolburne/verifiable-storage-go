@@ -8,6 +8,7 @@ import (
 
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/algorithms"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data"
+	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/clauses"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/expressions"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/data/orderings"
 	"github.com/jasoncolburne/verifiable-storage-go/pkg/interfaces"
@@ -55,6 +56,18 @@ func (r VerifiableRepository[T]) CreateVersion(ctx context.Context, record T) er
 
 func (r VerifiableRepository[T]) GetById(ctx context.Context, record T, id string) error {
 	if err := r.getRecordById(ctx, record, id); err != nil {
+		return err
+	}
+
+	if err := r.verifyRecord(record); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r VerifiableRepository[T]) GetBySequenceNumber(ctx context.Context, record T, prefix string, sequenceNumber uint) error {
+	if err := r.getRecordBySequenceNumber(ctx, record, prefix, sequenceNumber); err != nil {
 		return err
 	}
 
@@ -223,6 +236,18 @@ func (r VerifiableRepository[T]) insertRecord(ctx context.Context, record T) err
 
 func (r VerifiableRepository[T]) getRecordById(ctx context.Context, record T, id string) error {
 	return r.get(ctx, record, expressions.Equal("id", id), nil)
+}
+
+func (r VerifiableRepository[T]) getRecordBySequenceNumber(ctx context.Context, record T, prefix string, sequenceNumber uint) error {
+	return r.get(
+		ctx,
+		record,
+		clauses.And([]data.ClauseOrExpression{
+			expressions.Equal("prefix", prefix),
+			expressions.Equal("sequence_number", sequenceNumber),
+		}),
+		nil,
+	)
 }
 
 func (r VerifiableRepository[T]) getLatestRecordByPrefix(ctx context.Context, record T, prefix string) error {

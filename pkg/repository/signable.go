@@ -65,6 +65,18 @@ func (r SignableRepository[T]) GetById(ctx context.Context, record T, id string)
 	return nil
 }
 
+func (r SignableRepository[T]) GetBySequenceNumber(ctx context.Context, record T, prefix string, sequenceNumber uint) error {
+	if err := r.getRecordBySequenceNumber(ctx, record, prefix, sequenceNumber); err != nil {
+		return err
+	}
+
+	if err := r.verifySignedRecord(record); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r SignableRepository[T]) GetLatestByPrefix(ctx context.Context, record T, prefix string) error {
 	if err := r.getLatestRecordByPrefix(ctx, record, prefix); err != nil {
 		return err
