@@ -8,11 +8,35 @@ import (
 )
 
 type Repository[T primitives.VerifiableAndRecordable] interface {
-	CreateVersion(ctx context.Context, record T) error
-	GetById(ctx context.Context, record T, id string) error
-	GetBySequenceNumber(ctx context.Context, record T, prefix string, sequenceNumber uint) error
-	GetLatestByPrefix(ctx context.Context, record T, prefix string) error
-	ListByPrefix(ctx context.Context, records *[]T, prefix string) error
+	CreateVersion(
+		ctx context.Context,
+		record T,
+	) error
+
+	GetById(
+		ctx context.Context,
+		record T,
+		id string,
+	) error
+
+	GetBySequenceNumber(
+		ctx context.Context,
+		record T,
+		prefix string,
+		sequenceNumber uint,
+	) error
+
+	GetLatestByPrefix(
+		ctx context.Context,
+		record T,
+		prefix string,
+	) error
+
+	ListByPrefix(
+		ctx context.Context,
+		records *[]T,
+		prefix string,
+	) error
 
 	Get(
 		ctx context.Context,
