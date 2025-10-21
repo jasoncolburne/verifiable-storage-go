@@ -14,4 +14,8 @@ type SQLStore interface {
 
 type Store interface {
 	Sql() SQLStore // May be an sql.Tx or sql.DB
+
+	BeginTransaction(ctx context.Context, opts *sql.TxOptions) error
+	CommitTransaction() error
+	RollbackTransaction() error
 }
