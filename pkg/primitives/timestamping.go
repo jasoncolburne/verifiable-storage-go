@@ -28,7 +28,7 @@ func (t *Timestamper) StampCreatedAt(when *Timestamp) {
 	t.CreatedAt = &utc
 }
 
-const ConsistentNano = `2006-01-02T15:04:05.000000000Z07:00`
+const ConsistentMilli = `2006-01-02T15:04:05.000Z07:00`
 
 func (t Timestamp) UTC() Timestamp {
 	utc := (time.Time(t)).UTC()
@@ -36,7 +36,7 @@ func (t Timestamp) UTC() Timestamp {
 }
 
 func (t Timestamp) MarshalJSON() ([]byte, error) {
-	when := time.Time(t).Format(ConsistentNano)
+	when := time.Time(t).Format(ConsistentMilli)
 	b, err := json.Marshal(when)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (t *Timestamp) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	when, err := time.Parse(ConsistentNano, s)
+	when, err := time.Parse(ConsistentMilli, s)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (t *Timestamp) UnmarshalJSON(b []byte) error {
 }
 
 func (t Timestamp) Value() (driver.Value, error) {
-	return time.Time(t).Format(ConsistentNano), nil
+	return time.Time(t).Format(ConsistentMilli), nil
 }
 
 func (t *Timestamp) Scan(src any) error {
