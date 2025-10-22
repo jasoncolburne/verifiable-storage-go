@@ -80,6 +80,10 @@ func (s *SQLiteStore) RollbackTransaction() error {
 	return nil
 }
 
+func (*SQLiteStore) ReplacePlaceholders(query string) string {
+	return query
+}
+
 type AnyBuilder struct{}
 
 func NewAnyBuilder() *AnyBuilder {

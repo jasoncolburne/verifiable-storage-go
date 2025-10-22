@@ -18,4 +18,6 @@ type Store interface {
 	BeginTransaction(ctx context.Context, opts *sql.TxOptions) error
 	CommitTransaction() error
 	RollbackTransaction() error
+
+	ReplacePlaceholders(query string) string
 }

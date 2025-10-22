@@ -267,6 +267,8 @@ func (r VerifiableRepository[T]) get(ctx context.Context, record T, condition da
 
 	query += " LIMIT 1"
 
+	query = r.store.ReplacePlaceholders(query)
+
 	if err := r.store.Sql().GetContext(ctx, record, query, condition.Values()...); err != nil {
 		return err
 	}
@@ -302,22 +304,17 @@ func (r VerifiableRepository[T]) selectLatestByPrefix(
 	values = append(values, preFilter.Values()...)
 
 	innerQuery := fmt.Sprintf(
-		`SELECT
-			ROW_NUMBER() OVER (PARTITION BY prefix ORDER BY sequence_number DESC) AS _rank,
-			*
-		FROM %s
-		WHERE %s
-		`,
+		`SELECT ROW_NUMBER() OVER (PARTITION BY prefix ORDER BY sequence_number DESC) AS _rank, *
+			FROM %s
+			WHERE %s`,
 		(*new(T)).TableName(),
 		preFilter.String(),
 	)
 
 	query := fmt.Sprintf(
-		`WITH sequentialranks AS (%s)
-		SELECT *
-		FROM sequentialranks
-		WHERE _rank=1
-		`,
+		`WITH sequentialranks AS (%s) SELECT *
+			FROM sequentialranks
+			WHERE _rank=1`,
 		innerQuery,
 	)
 
@@ -344,6 +341,8 @@ func (r VerifiableRepository[T]) selectCore(
 	if limit != nil {
 		query += fmt.Sprintf(" LIMIT %d", *limit)
 	}
+
+	query = r.store.ReplacePlaceholders(query)
 
 	if err := r.store.Sql().SelectContext(ctx, records, query, values...); err != nil {
 		return err

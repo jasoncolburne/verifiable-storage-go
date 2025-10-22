@@ -120,7 +120,7 @@ func exerciseFixedVerifiableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","prefix":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","sequenceNumber":0,"nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:32.722276000Z","foo":"bar","bar":"foo"}`) {
+	if !strings.EqualFold(string(jsonRecord), `{"id":"EMQ1elB_Sw3i73owirOMUO8z6Qagun3iFwOggMjeIfvF","prefix":"EMQ1elB_Sw3i73owirOMUO8z6Qagun3iFwOggMjeIfvF","sequenceNumber":0,"nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:32.722Z","foo":"bar","bar":"foo"}`) {
 		return fmt.Errorf("sn 0 had unexpected values: %s", jsonRecord)
 	}
 
@@ -134,7 +134,7 @@ func exerciseFixedVerifiableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"EO_wM1UoWjk4aTOkrOdN56JxfNJBwGpKDpFAcaSlEiB3","prefix":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","sequenceNumber":1,"previous":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:33.722276000Z","foo":"bar","bar":"foo"}`) {
+	if !strings.EqualFold(string(jsonRecord), `{"id":"EBV02CaOIRhCVwFv6EL3Ju6vb3ZQJY9m2F6BDsefrTuC","prefix":"EMQ1elB_Sw3i73owirOMUO8z6Qagun3iFwOggMjeIfvF","sequenceNumber":1,"previous":"EMQ1elB_Sw3i73owirOMUO8z6Qagun3iFwOggMjeIfvF","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:33.722Z","foo":"bar","bar":"foo"}`) {
 		return fmt.Errorf("sn 1 had unexpected values: %s", jsonRecord)
 	}
 
@@ -148,7 +148,7 @@ func exerciseFixedVerifiableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"EK-eJ0YStKtbjNoLeFUrC1secwP9rtqE4gQ9_cKKwmuu","prefix":"EKV6bgU7UuFzQYqsvovO2yPV6r6pZss6OzxpJJgI0HEq","sequenceNumber":2,"previous":"EO_wM1UoWjk4aTOkrOdN56JxfNJBwGpKDpFAcaSlEiB3","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:34.722276000Z","foo":"bar","bar":"foo"}`) {
+	if !strings.EqualFold(string(jsonRecord), `{"id":"EPRTxjr3ABOKyMqkQQYvfoICjndmMpuY3CsEmUzSEgHU","prefix":"EMQ1elB_Sw3i73owirOMUO8z6Qagun3iFwOggMjeIfvF","sequenceNumber":2,"previous":"EBV02CaOIRhCVwFv6EL3Ju6vb3ZQJY9m2F6BDsefrTuC","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:34.722Z","foo":"bar","bar":"foo"}`) {
 		return fmt.Errorf("sn 2 had unexpected values: %s", jsonRecord)
 	}
 
@@ -210,11 +210,11 @@ func exerciseFixedSignableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","prefix":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","sequenceNumber":0,"nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:32.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
+	if !strings.EqualFold(string(jsonRecord), `{"id":"ECs1y_ZbBx4P63gkuCm3dj8iJF1ILYNTW6c3EKhLWscU","prefix":"ECs1y_ZbBx4P63gkuCm3dj8iJF1ILYNTW6c3EKhLWscU","sequenceNumber":0,"nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:32.722Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
 		return fmt.Errorf("sn 0 had unexpected values: %s", jsonRecord)
 	}
 
-	if !strings.EqualFold(r.Signature, "0BDYzrwL2kLyV9-cqlUpZPGb3Knv41fi5XS5cmvFRJ0H69EijqO0h-gxfsuPbpurdO1yFHaTZgfurKN-ORjXZqEH") {
+	if !strings.EqualFold(r.Signature, "0BB9gq_PkM84YmBnK7IdHqeA7yLY_PYY5ulAPWGXjdq41zwW40sy8STD89Jr_9N8Ho4AzfPt_yB9xEN5pBJsa0QD") {
 		return fmt.Errorf("sn 0 had unexpected signature: %s", r.Signature)
 	}
 
@@ -232,11 +232,11 @@ func exerciseFixedSignableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"EHlunc8O09d5S-rHTD7IOHZ9Uo1vSfr1C6VAuEGJLnak","prefix":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","sequenceNumber":1,"previous":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:33.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
+	if !strings.EqualFold(string(jsonRecord), `{"id":"EDWt5yTMe2qE9QyV0QIMSjOC9Nmvzw5OAYPBbM_m5GAV","prefix":"ECs1y_ZbBx4P63gkuCm3dj8iJF1ILYNTW6c3EKhLWscU","sequenceNumber":1,"previous":"ECs1y_ZbBx4P63gkuCm3dj8iJF1ILYNTW6c3EKhLWscU","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:33.722Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
 		return fmt.Errorf("sn 1 had unexpected values: %s", jsonRecord)
 	}
 
-	if !strings.EqualFold(r.Signature, "0BCRqU5w6jV4xSf__vgxwlxiAUTEwZoczLxHPx7IAqfTaY88ua6p5SB_4kZYBy2vKe-PnQXNcSteCuHQVB51LdcD") {
+	if !strings.EqualFold(r.Signature, "0BDMUwphicKtgp4NSeFUsjy8EXYwPGjVKPRCxzTLxf2R2p10djQXAITBBQEFzC76-Q88VfWS0IauB54yis69TD8B") {
 		return fmt.Errorf("sn 1 had unexpected signature: %s", r.Signature)
 	}
 
@@ -254,11 +254,11 @@ func exerciseFixedSignableRecorder() error {
 		return err
 	}
 
-	if !strings.EqualFold(string(jsonRecord), `{"id":"EETf1YcE2NeQFY9hFCCCjThhelLxUGSyLQ9e3BCCaSYd","prefix":"EN98smTUR2b4_XDoX7kSg6PhZa38X4tYS7rS_QfyrdfV","sequenceNumber":2,"previous":"EHlunc8O09d5S-rHTD7IOHZ9Uo1vSfr1C6VAuEGJLnak","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:34.722276000Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
+	if !strings.EqualFold(string(jsonRecord), `{"id":"EG2jlz7Lo6ISSKHI1pVJSY8sTMNDrWyKeKs3OldACTg7","prefix":"ECs1y_ZbBx4P63gkuCm3dj8iJF1ILYNTW6c3EKhLWscU","sequenceNumber":2,"previous":"EDWt5yTMe2qE9QyV0QIMSjOC9Nmvzw5OAYPBbM_m5GAV","nonce":"0A0000000000000000000000","createdAt":"2025-10-13T20:25:34.722Z","signingIdentity":"BDtqJ7zOtqQtYqOo0CpvDXNlMhV3HeJDpjrASKGLWdop","foo":"bar","bar":"foo"}`) {
 		return fmt.Errorf("sn 2 had unexpected values: %s", jsonRecord)
 	}
 
-	if !strings.EqualFold(r.Signature, "0BBzjQIE3QOU9c81N6V8WuJ5W8gQoWh9DXTMccQKx1_EJfuJvVzqeMOY5E6l2_n75Ywy4Wx2e01f2TxLM4zQox0N") {
+	if !strings.EqualFold(r.Signature, "0BACTCsjVbf6Bw-UKi-kbj3NKjc816HgFdLruGc62xRMA2XCEJpIv9LTBRFO_MU6eTDiROY_5-Hx4vPNCGk8rWIE") {
 		return fmt.Errorf("sn 2 had unexpected signature: %s", r.Signature)
 	}
 
